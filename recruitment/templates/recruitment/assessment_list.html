@@ -1,0 +1,33 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Skill Assessments - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Skill Assessments</h2>
+    <p>Test your skills and get certified to boost your profile.</p>
+    
+    {% if assessments %}
+        <div class="assessment-grid">
+            {% for assessment in assessments %}
+                <div class="assessment-card">
+                    <h3>{{ assessment.title }}</h3>
+                    <p class="category">{{ assessment.skill_category }}</p>
+                    <p class="difficulty">{{ assessment.get_difficulty_display }}</p>
+                    <div class="assessment-details">
+                        <span>⏱ {{ assessment.duration_minutes }} mins</span>
+                        <span>❓ {{ assessment.total_questions }} questions</span>
+                        <span>✅ {{ assessment.passing_score }}% to pass</span>
+                    </div>
+                    <a href="{% url 'take_assessment' assessment.id %}" class="btn btn-primary">Take Assessment</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No assessments available yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

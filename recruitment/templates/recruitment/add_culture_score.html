@@ -1,0 +1,57 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Rate Company Culture - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin-top: 2rem;">
+    <div class="glass-card">
+        <h1 style="font-family: var(--font-display); margin-bottom: 1rem;">Rate {{ company.name }}</h1>
+        <p class="text-muted">Help others by sharing culture scores (1-5)</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Work-Life Balance (1-5)</label>
+                <select name="wlb" class="form-select">
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3 - Average</option>
+                    <option value="4">4</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Growth Opportunity (1-5)</label>
+                <select name="growth" class="form-select">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Pay Fairness (1-5)</label>
+                <select name="pay_fairness" class="form-select">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Diversity & Inclusion (1-5)</label>
+                <select name="dei" class="form-select">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <a href="{% url 'company_reviews' company.id %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

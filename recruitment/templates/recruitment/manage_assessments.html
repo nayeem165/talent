@@ -1,0 +1,118 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Manage Skill Assessments{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Manage Skill Assessments</h2>
+            <a href="{% url 'create_assessment' %}" class="btn btn-primary">Create New Assessment</a>
+        </div>
+        
+        <div class="card-body">
+            {% if assessments %}
+                <div class="assessments-list">
+                    {% for assessment in assessments %}
+                        <div class="assessment-item">
+                            <div class="assessment-info">
+                                <h3>{{ assessment.title }}</h3>
+                                <p>{{ assessment.description }}</p>
+                                <div class="assessment-meta">
+                                    <span class="badge">{{ assessment.get_difficulty_display }}</span>
+                                    <span class="badge">{{ assessment.skill_category }}</span>
+                                    <span class="badge">{{ assessment.duration_minutes }} min</span>
+                                    <span class="badge">Pass: {{ assessment.passing_score }}%</span>
+                                </div>
+                            </div>
+                            <div class="assessment-actions">
+                                <span class="status {% if assessment.is_active %}active{% else %}inactive{% endif %}">
+                                    {% if assessment.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No assessments yet</h3>
+                    <p>Create your first skill assessment to get started.</p>
+                    <a href="{% url 'create_assessment' %}" class="btn btn-primary">Create Assessment</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.assessments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.assessment-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    background: var(--bg-card);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.assessment-info h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.assessment-info p {
+    margin: 0 0 1rem 0;
+    color: var(--text-secondary);
+}
+
+.assessment-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.assessment-meta .badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+}
+
+.status {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status.active {
+    background: var(--success-color);
+    color: white;
+}
+
+.status.inactive {
+    background: var(--danger-color);
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+.empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+</style>
+{% endblock %}

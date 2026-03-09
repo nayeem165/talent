@@ -1,0 +1,34 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Recent Searches - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Recent Searches</h2>
+    
+    {% if searches %}
+        <div class="search-history">
+            {% for search in searches %}
+                <div class="search-item">
+                    <a href="{% url 'job_listings' %}?search={{ search.search_query }}&location={{ search.location }}&employment_type={{ search.employment_type }}">
+                        <strong>{{ search.search_query }}</strong>
+                        {% if search.location %} in {{ search.location }}{% endif %}
+                    </a>
+                    <span class="date">{{ search.searched_at|date:"M d, Y" }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-3">
+            <a href="{% url 'clear_searches' %}" class="btn btn-outline">Clear All</a>
+            <a href="{% url 'job_listings' %}" class="btn btn-primary">New Search</a>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No recent searches.</p>
+            <a href="{% url 'job_listings' %}" class="btn btn-primary">Search Jobs</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

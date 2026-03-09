@@ -1,0 +1,53 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Take Assessment - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="fade-in">
+        <div class="glass-card">
+            <h1 style="margin-bottom: 1.5rem;">{{ assessment.title }}</h1>
+            
+            <div class="mb-3">
+                <span class="badge badge-primary">{{ assessment.get_difficulty_display }}</span>
+                <span class="badge badge-secondary">{{ assessment.skill_category }}</span>
+                <span class="badge badge-info">{{ assessment.duration_minutes }} minutes</span>
+            </div>
+            
+            <p class="text-muted" style="margin-bottom: 1.5rem;">{{ assessment.description }}</p>
+            
+            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                <h3 style="margin-bottom: 1rem;">Assessment Details</h3>
+                <p><strong>Total Questions:</strong> {{ assessment.total_questions }}</p>
+                <p><strong>Passing Score:</strong> {{ assessment.passing_score }}%</p>
+                <p><strong>Time Limit:</strong> {{ assessment.duration_minutes }} minutes</p>
+            </div>
+            
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Enter Your Score (%)</label>
+                    <input type="number" name="score" class="form-input" min="0" max="100" required 
+                           placeholder="Enter your estimated score">
+                    <p class="text-muted" style="margin-top: 0.5rem;">
+                        This is a simplified assessment. Enter your estimated score based on your knowledge.
+                    </p>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                    <a href="{% url 'assessment_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

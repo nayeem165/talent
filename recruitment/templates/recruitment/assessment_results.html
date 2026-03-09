@@ -1,0 +1,56 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Assessment Results - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="fade-in">
+        <div class="glass-card">
+            <h1 style="margin-bottom: 1.5rem;">My Assessment Results</h1>
+            
+            {% if results %}
+                <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                    {% for result in results %}
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <div class="flex-between mb-2">
+                            <h3 style="margin: 0;">{{ result.assessment.title }}</h3>
+                            {% if result.passed %}
+                            <span class="badge badge-success">Passed</span>
+                            {% else %}
+                            <span class="badge badge-danger">Failed</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="score-circle" style="width: 80px; height: 80px; font-size: 1.5rem; margin: 1rem auto;">
+                            {{ result.score }}%
+                        </div>
+                        
+                        <p class="text-muted">
+                            <strong>Assessment:</strong> {{ result.assessment.skill_category }}<br>
+                            <strong>Difficulty:</strong> {{ result.assessment.get_difficulty_display }}<br>
+                            <strong>Date:</strong> {{ result.completed_at|date:"M d, Y" }}
+                        </p>
+                        
+                        <p><strong>Passing Score:</strong> {{ result.assessment.passing_score }}%</p>
+                        
+                        {% if not result.passed %}
+                        <a href="{% url 'take_assessment' result.assessment.id %}" class="btn btn-primary">
+                            Retry Assessment
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">You haven't completed any assessments yet.</p>
+                <a href="{% url 'assessment_list' %}" class="btn btn-primary">Browse Assessments</a>
+            {% endif %}
+            
+            <div style="margin-top: 1.5rem;">
+                <a href="{% url 'candidate_profile' %}" class="btn btn-secondary">Back to Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

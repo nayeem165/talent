@@ -1,0 +1,55 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Write Review - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Write a Review for {{ company.name }}</h2>
+    
+    <form method="post" class="review-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Rating *</label>
+            <select name="rating" required class="form-control">
+                <option value="">Select Rating</option>
+                <option value="5">★★★★★ (Excellent)</option>
+                <option value="4">★★★★☆ (Good)</option>
+                <option value="3">★★★☆☆ (Average)</option>
+                <option value="2">★★☆☆☆ (Poor)</option>
+                <option value="1">★☆☆☆☆ (Terrible)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Review Title *</label>
+            <input type="text" name="title" required class="form-control" placeholder="Sum up your experience">
+        </div>
+        
+        <div class="form-group">
+            <label>Pros</label>
+            <textarea name="pros" class="form-control" rows="3" placeholder="What did you like?"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Cons</label>
+            <textarea name="cons" class="form-control" rows="3" placeholder="What didn't you like?"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Advice for Management</label>
+            <textarea name="advice" class="form-control" rows="3" placeholder="Any suggestions?"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_anonymous"> Post anonymously
+            </label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit Review</button>
+        <a href="{% url 'company_reviews' company.id %}" class="btn btn-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}
+

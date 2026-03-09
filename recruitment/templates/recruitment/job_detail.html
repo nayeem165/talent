@@ -1,0 +1,131 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}{{ job.title }} - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="fade-in">
+        <div class="glass-card">
+            <div class="flex-between mb-3">
+                <div>
+                    <h1 style="font-family: var(--font-display); margin: 0;">{{ job.title }}</h1>
+                    <p class="text-muted" style="margin: 0.5rem 0; font-size: 1.25rem;">
+                        <strong>{{ job.company }}</strong> • {{ job.location }}
+                    </p>
+                </div>
+                <span class="badge badge-primary" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                    {{ job.get_employment_type_display }}
+                </span>
+            </div>
+
+            {% if job.fair_pay_badge %}
+            <div class="badge badge-success" style="margin-bottom: 1rem;">✓ Fair Pay - Salary Transparent</div>
+            {% endif %}
+            {% if company_profile and company_profile.is_verified %}
+            <div class="badge badge-primary" style="margin-bottom: 1rem;">✓ Verified Employer</div>
+            {% endif %}
+
+            <div class="grid grid-3 mb-3">
+                <div
+                    style="text-align: center; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md);">
+                    <div class="text-muted">Experience</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
+                        {{ job.min_experience_years }}+ years
+                    </div>
+                </div>
+                {% if job.salary_min %}
+                <div
+                    style="text-align: center; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md);">
+                    <div class="text-muted">Salary Range</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--success-color);">
+                        ${{ job.salary_min|floatformat:0 }}-${{ job.salary_max|floatformat:0 }}
+                    </div>
+                </div>
+                {% endif %}
+                <div
+                    style="text-align: center; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md);">
+                    <div class="text-muted">Posted</div>
+                    <div style="font-size: 1.25rem; font-weight: 700;">
+                        {{ job.created_at|timesince }} ago
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <h2 style="margin-bottom: 1rem;">Description</h2>
+                <p style="white-space: pre-wrap;">{{ job.description }}</p>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <h2 style="margin-bottom: 1rem;">Requirements</h2>
+                <p style="white-space: pre-wrap;">{{ job.requirements }}</p>
+            </div>
+
+            {% if job.responsibilities %}
+            <div style="margin-bottom: 2rem;">
+                <h2 style="margin-bottom: 1rem;">Responsibilities</h2>
+                <p style="white-space: pre-wrap;">{{ job.responsibilities }}</p>
+            </div>
+            {% endif %}
+
+            <div style="margin-bottom: 2rem;">
+                <h2 style="margin-bottom: 1rem;">Required Skills</h2>
+                <div>
+                    {% for skill in required_skills %}
+                    <span class="badge badge-success" style="margin: 0.25rem; font-size: 0.95rem;">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if skill_gap_insights %}
+            <div class="glass-card mb-3" style="border-left: 4px solid var(--primary-color);">
+                <h3 style="margin-bottom: 1rem;">💡 Skill Gap Insights (for you)</h3>
+                <p class="text-muted" style="margin-bottom: 1rem;">Skills that could improve your match:</p>
+                <ul>
+                {% for insight in skill_gap_insights %}
+                    <li><strong>{{ insight.skill }}</strong> – {{ insight.reason }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if interview_experiences %}
+            <div class="glass-card mb-3" style="border-left: 4px solid var(--primary-color);">
+                <h3 style="margin-bottom: 1rem;">📝 Interview Experiences (from candidates)</h3>
+                {% for exp in interview_experiences %}
+                <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                    <p><strong>Questions asked:</strong> {{ exp.questions_asked|truncatewords:30 }}</p>
+                    <p class="text-muted">Difficulty: {{ exp.difficulty_rating }}/5 {% if exp.tips %}• Tips: {{ exp.tips|truncatewords:15 }}{% endif %}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if predicted_salary %}
+            <div class="glass-card mb-3" style="border-left: 4px solid var(--success-color);">
+                <h3 style="margin-bottom: 0.5rem;">💰 Predicted Salary Range (AI)</h3>
+                <p style="font-size: 1.25rem;">${{ predicted_salary.min|floatformat:0 }} – ${{ predicted_salary.max|floatformat:0 }}</p>
+                <p class="text-muted" style="font-size: 0.875rem;">Based on your profile • {{ predicted_salary.confidence }} confidence</p>
+            </div>
+            {% endif %}
+
+            <div class="flex-center gap-2" style="padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                {% if user.is_authenticated and not user.is_staff %}
+                {% if has_applied %}
+                <button class="btn btn-secondary" disabled>Already Applied</button>
+                {% else %}
+                <a href="{% url 'apply_job' job.id %}" class="btn btn-primary">Apply Now</a>
+                {% endif %}
+                {% elif not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="btn btn-primary">Login to Apply</a>
+                <a href="{% url 'register_candidate' %}" class="btn btn-secondary">Sign Up</a>
+                {% endif %}
+                <a href="{% url 'job_listings' %}" class="btn btn-secondary">Back to Jobs</a>
+                {% if user.is_authenticated and not user.is_staff %}
+                <a href="{% url 'share_interview_experience' job.id %}" class="btn btn-outline">Share Interview Experience</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

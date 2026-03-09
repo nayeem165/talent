@@ -1,0 +1,51 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Resume Builder - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Resume Builder</h2>
+    <p>Create professional resumes quickly.</p>
+    
+    <div class="resume-builder-grid">
+        <div class="templates-section">
+            <h3>Choose a Template</h3>
+            {% if templates %}
+                <div class="template-grid">
+                    {% for template in templates %}
+                        <div class="template-card {% if template.is_premium %}premium{% endif %}">
+                            <h4>{{ template.name }}</h4>
+                            <p>{{ template.description }}</p>
+                            {% if template.is_premium %}
+                                <span class="badge badge-premium">Premium</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No templates available.</p>
+            {% endif %}
+        </div>
+        
+        <div class="my-resumes">
+            <h3>My Resumes</h3>
+            {% if my_resumes %}
+                {% for resume in my_resumes %}
+                    <div class="resume-item">
+                        <h4>{{ resume.title }}</h4>
+                        <p>Created: {{ resume.created_at|date:"M d, Y" }}</p>
+                        {% if resume.is_primary %}
+                            <span class="badge badge-primary">Primary</span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No resumes created yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <button class="btn btn-primary" data-toggle="modal" data-target="#createResumeModal">Create New Resume</button>
+</div>
+{% endblock %}
+

@@ -1,0 +1,58 @@
+{% extends 'recruitment/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Job Alerts</h1>
+    <p class="text-muted">Get notified when new jobs matching your preferences are posted</p>
+    
+    <!-- Create Alert Form -->
+    <div class="glass-card" style="margin-bottom: 2rem;">
+        <h3>Create New Alert</h3>
+        <form method="POST" class="form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="keywords">Keywords (comma-separated)</label>
+                <input type="text" name="keywords" id="keywords" class="form-control" 
+                       placeholder="e.g., python, django, machine learning" required>
+            </div>
+            <div class="form-group">
+                <label for="location">Preferred Location</label>
+                <input type="text" name="location" id="location" class="form-control" 
+                       placeholder="e.g., Remote, New York, London">
+            </div>
+            <button type="submit" class="btn btn-primary">Create Alert</button>
+        </form>
+    </div>
+    
+    <!-- Existing Alerts -->
+    <h2>Your Alerts</h2>
+    {% if alerts %}
+        <div class="grid grid-2">
+            {% for alert in alerts %}
+            <div class="glass-card">
+                <div class="flex-between">
+                    <div>
+                        <h4>{{ alert.keywords }}</h4>
+                        <p class="text-muted">Location: {{ alert.location|default:"Any" }}</p>
+                    </div>
+                    <div>
+                        <span class="badge {% if alert.is_active %}badge-success{% else %}badge-secondary{% endif %}">
+                            {{ alert.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </div>
+                </div>
+                <div class="flex-between" style="margin-top: 1rem;">
+                    <a href="{% url 'toggle_job_alert' alert.id %}" class="btn btn-secondary">
+                        {{ alert.is_active|yesno:"Pause,Activate" }}
+                    </a>
+                    <a href="{% url 'delete_job_alert' alert.id %}" class="btn btn-danger">Delete</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No job alerts yet. Create one above!</p>
+    {% endif %}
+</div>
+{% endblock %}
+

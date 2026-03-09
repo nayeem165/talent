@@ -1,0 +1,46 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Chat Search - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="glass-card mb-3">
+        <h1 style="font-family: var(--font-display); margin-bottom: 1rem;">💬 Chat-Based Job Search</h1>
+        <p class="text-muted">Try: "Python jobs Bangalore 3-5 years remote" or "Senior developer San Francisco"</p>
+        <form method="get" action="{% url 'job_search_chat' %}" style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <input type="text" name="q" class="form-input" value="{{ query }}" 
+                   placeholder="e.g. Python jobs remote 3-5 years" style="flex: 1;">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+        {% if parsed and query %}
+        <div class="text-muted" style="margin-top: 1rem; font-size: 0.875rem;">
+            Parsed: {% if parsed.location %}Location: {{ parsed.location }}{% endif %}
+            {% if parsed.min_experience %} • Min exp: {{ parsed.min_experience }}y{% endif %}
+            {% if parsed.remote %} • Remote: {{ parsed.remote }}{% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-2">
+        {% for job in jobs %}
+        <div class="glass-card">
+            <div class="flex-between mb-2">
+                <h2 style="margin: 0; font-size: 1.25rem;">{{ job.title }}</h2>
+                {% if job.fair_pay_badge %}<span class="badge badge-success">Fair Pay</span>{% endif %}
+            </div>
+            <p class="text-muted">{{ job.company }} • {{ job.location }}</p>
+            <p style="margin-bottom: 1rem;">{{ job.description|truncatewords:25 }}</p>
+            <a href="{% url 'job_detail' job.id %}" class="btn btn-primary">View</a>
+        </div>
+        {% empty %}
+        <div class="glass-card" style="grid-column: span 2; text-align: center; padding: 3rem;">
+            <p class="text-muted">Enter a search query above to find jobs</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="margin-top: 2rem;">
+        <a href="{% url 'job_listings' %}" class="btn btn-secondary">Back to Job Listings</a>
+    </div>
+</div>
+{% endblock %}

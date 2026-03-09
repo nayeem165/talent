@@ -1,0 +1,214 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Resume Ranking - {{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Resume Ranking for: {{ job.title }}</h2>
+            <p class="text-muted">AI-powered ranking of candidate resumes based on match score, profile completeness, and premium status</p>
+        </div>
+        
+        <div class="card-body">
+            {% if ranked_applications %}
+                <div class="ranking-list">
+                    {% for item in ranked_applications %}
+                        <div class="ranking-item {% if item.premium_boost %}premium-highlight{% endif %}">
+                            <div class="ranking-header">
+                                <div class="ranking-position">#{{ forloop.counter }}</div>
+                                <div class="candidate-info">
+                                    <h3>{{ item.candidate.full_name }}</h3>
+                                    <p class="text-muted">{{ item.candidate.current_role }} • {{ item.candidate.location }}</p>
+                                </div>
+                                <div class="ranking-score">
+                                    <div class="score-badge score-{{ item.final_score|floatformat:0 }}">
+                                        {{ item.final_score|floatformat:1 }}/100
+                                    </div>
+                                    {% if item.premium_boost %}
+                                        <span class="premium-badge">Premium</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-details">
+                                <div class="score-breakdown">
+                                    <div class="score-item">
+                                        <span class="score-label">Match Score:</span>
+                                        <span class="score-value">{{ item.overall_score }}/100</span>
+                                    </div>
+                                    <div class="score-item">
+                                        <span class="score-label">Skills:</span>
+                                        <span class="score-value">{{ item.skill_score }}/100</span>
+                                    </div>
+                                    <div class="score-item">
+                                        <span class="score-label">Experience:</span>
+                                        <span class="score-value">{{ item.experience_score }}/100</span>
+                                    </div>
+                                    <div class="score-item">
+                                        <span class="score-label">Profile:</span>
+                                        <span class="score-value">{{ item.profile_completeness }}%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="ranking-actions">
+                                    <a href="{% url 'application_detail' item.application.id %}" class="btn btn-primary btn-sm">View Details</a>
+                                    <a href="{% url 'schedule_interview' item.application.id %}" class="btn btn-secondary btn-sm">Schedule Interview</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No applications yet</h3>
+                    <p>Candidates haven't applied to this job yet.</p>
+                    <a href="{% url 'view_applications' job.id %}" class="btn btn-primary">View Applications</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ranking-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    background: var(--bg-card);
+    transition: all 0.3s ease;
+}
+
+.ranking-item:hover {
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.ranking-item.premium-highlight {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-glow);
+}
+
+.ranking-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.ranking-position {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    min-width: 3rem;
+}
+
+.candidate-info h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.candidate-info p {
+    margin: 0.25rem 0 0 0;
+    color: var(--text-secondary);
+}
+
+.ranking-score {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.score-badge {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: bold;
+    color: white;
+}
+
+.score-90, .score-91, .score-92, .score-93, .score-94, .score-95, .score-96, .score-97, .score-98, .score-99, .score-100 {
+    background: var(--success-color);
+}
+
+.score-80, .score-81, .score-82, .score-83, .score-84, .score-85, .score-86, .score-87, .score-88, .score-89 {
+    background: var(--primary-color);
+}
+
+.score-70, .score-71, .score-72, .score-73, .score-74, .score-75, .score-76, .score-77, .score-78, .score-79 {
+    background: var(--warning-color);
+}
+
+.score-0, .score-1, .score-2, .score-3, .score-4, .score-5, .score-6, .score-7, .score-8, .score-9,
+.score-10, .score-11, .score-12, .score-13, .score-14, .score-15, .score-16, .score-17, .score-18, .score-19,
+.score-20, .score-21, .score-22, .score-23, .score-24, .score-25, .score-26, .score-27, .score-28, .score-29,
+.score-30, .score-31, .score-32, .score-33, .score-34, .score-35, .score-36, .score-37, .score-38, .score-39,
+.score-40, .score-41, .score-42, .score-43, .score-44, .score-45, .score-46, .score-47, .score-48, .score-49,
+.score-50, .score-51, .score-52, .score-53, .score-54, .score-55, .score-56, .score-57, .score-58, .score-59,
+.score-60, .score-61, .score-62, .score-63, .score-64, .score-65, .score-66, .score-67, .score-68, .score-69 {
+    background: var(--danger-color);
+}
+
+.premium-badge {
+    background: var(--secondary-gradient);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.ranking-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.score-breakdown {
+    display: flex;
+    gap: var(--spacing-lg);
+}
+
+.score-item {
+    text-align: center;
+}
+
+.score-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.score-value {
+    display: block;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.ranking-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+.empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+</style>
+{% endblock %}

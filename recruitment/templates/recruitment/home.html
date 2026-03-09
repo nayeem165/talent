@@ -1,0 +1,96 @@
+{% extends 'recruitment/base.html' %}
+
+{% block content %}
+<div class="hero fade-in">
+    <div class="container">
+        <h1 class="hero-title">Find the Perfect Talent with AI Intelligence</h1>
+        <p class="hero-subtitle">
+            TalentSleuth AI uses advanced algorithms to match candidates with opportunities,
+            providing intelligent insights for smarter hiring decisions.
+        </p>
+        <div class="flex-center gap-2" style="margin-bottom: 3rem;">
+            <a href="{% url 'register_candidate' %}" class="btn btn-primary">Get Started as Candidate</a>
+            <a href="{% url 'register_recruiter' %}" class="btn btn-secondary">I'm a Recruiter</a>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-3" style="margin-bottom: 3rem;">
+            <div class="glass-card text-center">
+                <div class="score-circle" style="margin: 0 auto 1rem;">{{ total_jobs }}</div>
+                <h3>Active Jobs</h3>
+                <p class="text-muted">Opportunities waiting</p>
+            </div>
+            <div class="glass-card text-center">
+                <div class="score-circle" style="background: var(--accent-gradient);">{{ total_candidates }}</div>
+                <h3>Talented Candidates</h3>
+                <p class="text-muted">Ready to hire</p>
+            </div>
+            <div class="glass-card text-center">
+                <div class="score-circle" style="background: var(--success-gradient);">AI</div>
+                <h3>Smart Matching</h3>
+                <p class="text-muted">Powered by intelligence</p>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-display); font-size: 2.5rem;">
+            Why Choose TalentSleuth AI?
+        </h2>
+        <div class="grid grid-3">
+            <div class="glass-card">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+                <h3 style="margin-bottom: 0.5rem;">AI-Powered Matching</h3>
+                <p class="text-muted">
+                    Our intelligent algorithms analyze skills, experience, and requirements to find the perfect match
+                    with precision scoring.
+                </p>
+            </div>
+            <div class="glass-card">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                <h3 style="margin-bottom: 0.5rem;">Intelligent Insights</h3>
+                <p class="text-muted">
+                    Get detailed AI-generated insights about each candidate, highlighting strengths and potential
+                    concerns.
+                </p>
+            </div>
+            <div class="glass-card">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+                <h3 style="margin-bottom: 0.5rem;">Fast & Efficient</h3>
+                <p class="text-muted">
+                    Streamline your hiring process with automated candidate scoring and intelligent ranking systems.
+                </p>
+            </div>
+        </div>
+
+        <!-- Featured Jobs -->
+        {% if featured_jobs %}
+        <div style="margin-top: 4rem;">
+            <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-display); font-size: 2.5rem;">
+                Featured Opportunities
+            </h2>
+            <div class="grid grid-2">
+                {% for job in featured_jobs %}
+                <div class="glass-card">
+                    <div class="flex-between mb-2">
+                        <h3 style="margin: 0;">{{ job.title }}</h3>
+                        <span class="badge badge-primary">{{ job.get_employment_type_display }}</span>
+                    </div>
+                    <p class="text-muted" style="margin-bottom: 1rem;">
+                        <strong>{{ job.company }}</strong> • {{ job.location }}
+                    </p>
+                    <p style="margin-bottom: 1rem;">{{ job.description|truncatewords:25 }}</p>
+                    <div class="flex-between" style="align-items: center;">
+                        <span class="text-muted">{{ job.min_experience_years }}+ years exp.</span>
+                        <a href="{% url 'job_detail' job.id %}" class="btn btn-secondary">View Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center" style="margin-top: 2rem;">
+                <a href="{% url 'job_listings' %}" class="btn btn-primary">View All Jobs</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

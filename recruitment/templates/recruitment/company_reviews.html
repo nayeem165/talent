@@ -1,0 +1,61 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}{{ company.name }} Reviews - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="company-header">
+        <h2>{{ company.name }}{% if company.is_verified %} <span class="badge badge-primary">✓ Verified</span>{% endif %}</h2>
+        <div class="company-rating">
+            {% if avg_rating > 0 %}
+                <span class="stars">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= avg_rating %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                </span>
+                <span>{{ avg_rating|floatformat:1 }} / 5.0</span>
+            {% else %}
+                <p>No ratings yet</p>
+            {% endif %}
+        </div>
+        <a href="{% url 'follow_company' company.id %}" class="btn btn-outline">Follow Company</a>
+    </div>
+    
+    <div class="company-actions" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+        <a href="{% url 'write_company_review' company.id %}" class="btn btn-primary">Write a Review</a>
+        <a href="{% url 'add_culture_score' company.id %}" class="btn btn-outline">Rate Culture</a>
+    </div>
+    
+    <h3>Reviews</h3>
+    {% if reviews %}
+        {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-rating">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    </div>
+                    <h4>{{ review.title }}</h4>
+                    <span class="reviewer">
+                        {% if review.is_anonymous %}Anonymous{% else %}{{ review.reviewer.full_name }}{% endif %}
+                    </span>
+                </div>
+                {% if review.pros %}
+                    <div class="review-section"><strong>Pros:</strong> {{ review.pros }}</div>
+                {% endif %}
+                {% if review.cons %}
+                    <div class="review-section"><strong>Cons:</strong> {{ review.cons }}</div>
+                {% endif %}
+                {% if review.advice %}
+                    <div class="review-section"><strong>Advice:</strong> {{ review.advice }}</div>
+                {% endif %}
+                <div class="review-date">{{ review.created_at|date:"M d, Y" }}</div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No reviews yet. Be the first to review!</p>
+    {% endif %}
+</div>
+{% endblock %}
+

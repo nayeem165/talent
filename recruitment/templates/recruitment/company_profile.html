@@ -1,0 +1,92 @@
+{% extends 'recruitment/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if company_profile %}Edit Company Profile{% else %}Create Company Profile{% endif %}</h1>
+    <p class="text-muted">Showcase your company to attract top talent</p>
+    
+    <form method="POST" class="form" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="name">Company Name</label>
+                <input type="text" name="name" id="name" class="form-control" 
+                       value="{{ company_profile.name|default:'' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="industry">Industry</label>
+                <input type="text" name="industry" id="industry" class="form-control" 
+                       value="{{ company_profile.industry|default:'' }}" required>
+            </div>
+        </div>
+        
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="website">Website</label>
+                <input type="url" name="website" id="website" class="form-control" 
+                       value="{{ company_profile.website|default:'' }}" placeholder="https://">
+            </div>
+            
+            <div class="form-group">
+                <label for="size">Company Size</label>
+                <select name="size" id="size" class="form-control">
+                    <option value="">Select size</option>
+                    <option value="1-10" {% if company_profile.size == '1-10' %}selected{% endif %}>1-10 employees</option>
+                    <option value="11-50" {% if company_profile.size == '11-50' %}selected{% endif %}>11-50 employees</option>
+                    <option value="51-200" {% if company_profile.size == '51-200' %}selected{% endif %}>51-200 employees</option>
+                    <option value="201-500" {% if company_profile.size == '201-500' %}selected{% endif %}>201-500 employees</option>
+                    <option value="501-1000" {% if company_profile.size == '501-1000' %}selected{% endif %}>501-1000 employees</option>
+                    <option value="1000+" {% if company_profile.size == '1000+' %}selected{% endif %}>1000+ employees</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="headquarters">Headquarters</label>
+                <input type="text" name="headquarters" id="headquarters" class="form-control" 
+                       value="{{ company_profile.headquarters|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="founded_year">Founded Year</label>
+                <input type="number" name="founded_year" id="founded_year" class="form-control" 
+                       value="{{ company_profile.founded_year|default:'' }}" min="1800" max="2024">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Company Description</label>
+            <textarea name="description" id="description" class="form-control" rows="4">{{ company_profile.description|default:'' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="benefits">Employee Benefits</label>
+            <textarea name="benefits" id="benefits" class="form-control" rows="3" 
+                      placeholder="Health insurance, 401k, remote work, etc.">{{ company_profile.benefits|default:'' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="culture">Company Culture</label>
+            <textarea name="culture" id="culture" class="form-control" rows="3" 
+                      placeholder="What makes your company a great place to work?">{{ company_profile.culture|default:'' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="logo">Company Logo</label>
+            <input type="file" name="logo" id="logo" class="form-control" accept="image/*">
+            {% if company_profile.logo %}
+                <img src="{{ company_profile.logo.url }}" alt="Logo" style="max-width: 200px; margin-top: 10px;">
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="btn btn-primary">
+            {% if company_profile %}Update Profile{% else %}Create Profile{% endif %}
+        </button>
+        <a href="{% url 'recruiter_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
+

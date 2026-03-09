@@ -1,0 +1,199 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Referral Dashboard - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h2 class="mb-4">Employee Referral Dashboard</h2>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h3>{{ total_referrals }}</h3>
+                            <p class="mb-0">Total Referrals</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h3>{{ hired }}</h3>
+                            <p class="mb-0">Hired</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body">
+                            <h3>{{ pending }}</h3>
+                            <p class="mb-0">Pending</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h3>${{ total_bonus }}</h3>
+                            <p class="mb-0">Bonuses Earned</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit New Referral -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-plus"></i> Submit New Referral</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="referralForm">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Candidate Email *</label>
+                                <input type="email" name="candidate_email" class="form-control" required
+                                       placeholder="candidate@email.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Refer for Job (Optional)</label>
+                                <select name="job_id" class="form-select">
+                                    <option value="">General Referral</option>
+                                    {% for job in jobs %}
+                                    <option value="{{ job.id }}">{{ job.title }} - {{ job.company }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes</label>
+                                <textarea name="notes" class="form-control" rows="2"
+                                          placeholder="Any additional information about the candidate..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_quick_apply" id="quickApply">
+                                    <label class="form-check-label" for="quickApply">
+                                        Quick Apply - Use candidate's existing profile
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> Submit Referral
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Referrals List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Referrals</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Candidate</th>
+                                    <th>Job</th>
+                                    <th>Status</th>
+                                    <th>Quick Apply</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referral in referrals %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ referral.referred_candidate.full_name }}</strong>
+                                        <br><small class="text-muted">{{ referral.referred_candidate.email }}</small>
+                                    </td>
+                                    <td>
+                                        {% if referral.job %}
+                                        {{ referral.job.title }}
+                                        {% else %}
+                                        <span class="text-muted">General</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if referral.status == 'hired' %}success{% elif referral.status == 'bonus_paid' %}info{% elif referral.status == 'pending' %}warning{% elif referral.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                            {{ referral.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if referral.is_quick_apply %}
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        {% else %}
+                                        <i class="bi bi-x-circle text-muted"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ referral.referred_at|date:"M d, Y" }}</small>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="alert alert-info mb-0">
+                                            You haven't made any referrals yet. Submit your first referral above!
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bonus Information -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5><i class="bi bi-gift"></i> Referral Bonus Program</h5>
+                    <p class="mb-0">
+                        Earn $500 for each candidate you refer who gets hired! 
+                        Bonuses are paid after the referred candidate completes their probation period.
+                        Use Quick Apply for faster processing.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('referralForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('{% url "submit_referral" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Referral submitted successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Something went wrong'));
+        }
+    })
+    .catch(error => {
+        alert('Error submitting referral');
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
+

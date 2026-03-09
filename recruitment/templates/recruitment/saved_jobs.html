@@ -1,0 +1,40 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Saved Jobs - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Saved Jobs</h2>
+    
+    {% if saved_jobs %}
+        <div class="job-list">
+            {% for saved in saved_jobs %}
+                <div class="job-card">
+                    <div class="job-header">
+                        <h3>{{ saved.job.title }}</h3>
+                        <span class="company">{{ saved.job.company }}</span>
+                    </div>
+                    <div class="job-details">
+                        <p><i class="fas fa-map-marker"></i> {{ saved.job.location }}</p>
+                        <p><i class="fas fa-briefcase"></i> {{ saved.job.get_employment_type_display }}</p>
+                        {% if saved.job.salary_min and saved.job.salary_max %}
+                            <p><i class="fas fa-money"></i> {{ saved.job.salary_currency }} {{ saved.job.salary_min }} - {{ saved.job.salary_max }}</p>
+                        {% endif %}
+                        <p><i class="fas fa-clock"></i> Saved on {{ saved.saved_at|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="job-actions">
+                        <a href="{% url 'job_detail' saved.job.id %}" class="btn btn-primary">View Job</a>
+                        <a href="{% url 'toggle_save_job' saved.job.id %}" class="btn btn-outline">Unsave</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>You haven't saved any jobs yet.</p>
+            <a href="{% url 'job_listings' %}" class="btn btn-primary">Browse Jobs</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

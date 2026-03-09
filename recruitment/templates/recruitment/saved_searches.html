@@ -1,0 +1,73 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Saved Searches - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="fade-in">
+        <div class="glass-card">
+            <h1 style="margin-bottom: 1.5rem;">Saved Candidate Searches <p class="text-muted"</h1>
+            style="margin-bottom: 1.5rem;">Manage your saved search profiles for finding candidates</p>
+            
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if searches %}
+                <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                    {% for search in searches %}
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem;">{{ search.name }}</h3>
+                        
+                        <div class="text-muted" style="font-size: 0.875rem;">
+                            {% if search.keywords %}
+                            <p><strong>Keywords:</strong> {{ search.keywords }}</p>
+                            {% endif %}
+                            {% if search.location %}
+                            <p><strong>Location:</strong> {{ search.location }}</p>
+                            {% endif %}
+                            {% if search.skills %}
+                            <p><strong>Skills:</strong> {{ search.skills }}</p>
+                            {% endif %}
+                            {% if search.min_experience or search.max_experience %}
+                            <p><strong>Experience:</strong> {{ search.min_experience }} - {{ search.max_experience }} years</p>
+                            {% endif %}
+                            {% if search.education_levels %}
+                            <p><strong>Education:</strong> {{ search.education_levels }}</p>
+                            {% endif %}
+                            
+                            <p style="margin-top: 1rem;"><strong>Last Run:</strong> 
+                                {% if search.last_run %}{{ search.last_run|date:"M d, Y" }}{% else %}Never{% endif %}
+                            </p>
+                            <p><strong>Results:</strong> {{ search.results_count }} candidates</p>
+                            
+                            {% if search.notify_on_new %}
+                            <p><span class="badge badge-info">Notification: {{ search.get_notify_frequency_display }}</span></p>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <a href="{% url 'run_saved_search' search.id %}" class="btn btn-primary">Run Search</a>
+                            <form method="post" action="{% url 'delete_saved_search' search.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">You haven't saved any searches yet.</p>
+                <a href="{% url 'advanced_candidate_search' %}" class="btn btn-primary">Create New Search</a>
+            {% endif %}
+            
+            <div style="margin-top: 1.5rem;">
+                <a href="{% url 'recruiter_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

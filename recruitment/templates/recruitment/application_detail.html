@@ -1,0 +1,230 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}{{ candidate.full_name }} - Application Details{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="fade-in">
+        <!-- Application Header -->
+        <div class="glass-card mb-3">
+            <div class="flex-between">
+                <div>
+                    <h1 style="font-family: var(--font-display); margin-bottom: 0.5rem;">
+                        {% if blind_mode %}Candidate (Blind Hiring){% else %}{{ candidate.full_name }}{% endif %}
+                    </h1>
+                    <p class="text-muted">Applied for: <strong>{{ job.title }}</strong> at {{ job.company }}</p>
+                    <p class="text-muted" style="font-size: 0.875rem;">
+                        Submitted {{ application.applied_at|timesince }} ago
+                    </p>
+                </div>
+                <div class="text-center">
+                    <div class="score-circle" style="width: 90px; height: 90px; font-size: 2rem;">
+                        {{ application.match_score }}
+                    </div>
+                    <p class="text-muted" style="margin-top: 0.5rem;">Overall Match</p>
+                </div>
+            </div>
+
+            <div class="grid grid-3" style="margin-top: 2rem; gap: 1rem;">
+                <div
+                    style="text-align: center; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md);">
+                    <div class="text-muted">Skill Match</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--success-color);">
+                        {{ application.skill_match_score }}%
+                    </div>
+                </div>
+                <div
+                    style="text-align: center; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md);">
+                    <div class="text-muted">Experience Match</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color);">
+                        {{ application.experience_match_score }}%
+                    </div>
+                </div>
+                <div
+                    style="text-align: center; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md);">
+                    <div class="text-muted">Status</div>
+                    <span class="badge badge-warning" style="font-size: 1rem; margin-top: 0.5rem;">
+                        {{ application.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+            <div>
+                <!-- AI Insights -->
+                <div class="glass-card mb-2">
+                    <h2 style="margin-bottom: 1.5rem;">🤖 AI Insights</h2>
+                    {% for insight in insights %}
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-card); 
+                                    border-radius: var(--radius-md); 
+                                    border-left: 4px solid 
+                                    {% if insight.insight_type == 'strength' %}var(--success-color)
+                                    {% elif insight.insight_type == 'weakness' %}var(--danger-color)
+                                    {% elif insight.insight_type == 'recommendation' %}var(--primary-color)
+                                    {% else %}var(--warning-color){% endif %};">
+                        <div class="flex-between mb-1">
+                            <strong>
+                                {% if insight.insight_type == 'strength' %}✅
+                                {% elif insight.insight_type == 'weakness' %}⚠️
+                                {% elif insight.insight_type == 'recommendation' %}💡
+                                {% else %}🔔{% endif %}
+                                {{ insight.title }}
+                            </strong>
+                            <span class="badge badge-primary" style="font-size: 0.75rem;">
+                                {{ insight.confidence_score }}% confidence
+                            </span>
+                        </div>
+                        <p class="text-muted" style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">
+                            {{ insight.description }}
+                        </p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No AI insights available</p>
+                    {% endfor %}
+                </div>
+
+                <!-- AI Cover Letter Analysis -->
+                {% if cover_letter_analysis %}
+                <div class="glass-card mb-2">
+                    <h2 style="margin-bottom: 1rem;">📋 AI Cover Letter Analysis</h2>
+                    <div class="grid grid-2" style="gap: 1rem; margin-bottom: 1rem;">
+                        <div style="text-align: center; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md);">
+                            <div class="text-muted">Fit Score</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">{{ cover_letter_analysis.fit_score }}%</div>
+                        </div>
+                        <div style="text-align: center; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md);">
+                            <div class="text-muted">Motivation Score</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">{{ cover_letter_analysis.motivation_score }}%</div>
+                        </div>
+                    </div>
+                    {% if cover_letter_analysis.strengths_summary %}<p><strong>Strengths:</strong> {{ cover_letter_analysis.strengths_summary }}</p>{% endif %}
+                    {% if cover_letter_analysis.concerns_summary %}<p><strong>Consider:</strong> {{ cover_letter_analysis.concerns_summary }}</p>{% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Cover Letter -->
+                {% if application.cover_letter and not blind_mode %}
+                <div class="glass-card mb-2">
+                    <h2 style="margin-bottom: 1rem;">Cover Letter</h2>
+                    <p style="white-space: pre-wrap;">{{ application.cover_letter }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Update Status (Recruiter Only) -->
+                {% if user.is_staff %}
+                <div class="glass-card">
+                    <h3 style="margin-bottom: 1rem;">Update Application Status</h3>
+                    <form method="post" action="{% url 'update_application_status' application.id %}">
+                        {% csrf_token %}
+                        <div class="flex gap-1" style="flex-wrap: wrap;">
+                            <button type="submit" name="status" value="submitted" class="btn btn-secondary"
+                                style="font-size: 0.875rem;">Submitted</button>
+                            <button type="submit" name="status" value="under_review" class="btn btn-primary"
+                                style="font-size: 0.875rem;">Under Review</button>
+                            <button type="submit" name="status" value="shortlisted" class="btn btn-success"
+                                style="font-size: 0.875rem;">Shortlisted</button>
+                            <button type="submit" name="status" value="interview" class="btn btn-success"
+                                style="font-size: 0.875rem;">Interview</button>
+                            <button type="submit" name="status" value="offered" class="btn btn-success"
+                                style="font-size: 0.875rem;">Offered</button>
+                            <button type="submit" name="status" value="rejected" class="btn btn-danger"
+                                style="font-size: 0.875rem;">Rejected</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+
+            <div>
+                <!-- Candidate Profile -->
+                <div class="glass-card mb-2">
+                    <h2 style="margin-bottom: 1.5rem;">Candidate Profile</h2>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        {% if not blind_mode %}
+                        <p><strong>Email:</strong> {{ candidate.email }}</p>
+                        <p><strong>Phone:</strong> {{ candidate.phone|default:"N/A" }}</p>
+                        <p><strong>Location:</strong> {{ candidate.location|default:"N/A" }}</p>
+                        {% else %}
+                        <p class="text-muted"><em>Identity hidden for blind hiring</em></p>
+                        {% endif %}
+                        <p><strong>Experience:</strong> {{ candidate.years_of_experience }} years</p>
+                        {% if candidate.linkedin_url %}
+                        <p><strong>LinkedIn:</strong> <a href="{{ candidate.linkedin_url }}" target="_blank"
+                                style="color: var(--accent-color);">View Profile</a></p>
+                        {% endif %}
+                        {% if candidate.github_url %}
+                        <p><strong>GitHub:</strong> <a href="{{ candidate.github_url }}" target="_blank"
+                                style="color: var(--accent-color);">View Profile</a></p>
+                        {% endif %}
+                    </div>
+
+                    {% if candidate.summary %}
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4>Professional Summary</h4>
+                        <p class="text-muted">{{ candidate.summary }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if candidate.resume %}
+                    <a href="{{ candidate.resume.url }}" class="btn btn-primary" style="width: 100%;" download>
+                        📄 Download Resume
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Skills -->
+                <div class="glass-card mb-2">
+                    <h3 style="margin-bottom: 1rem;">Skills</h3>
+                    {% for skill in skills %}
+                    <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: var(--bg-card); 
+                                    border-radius: var(--radius-sm);">
+                        <div class="flex-between">
+                            <strong>{{ skill.name }}</strong>
+                            <span class="badge badge-primary" style="font-size: 0.75rem;">
+                                {{ skill.get_proficiency_display }}
+                            </span>
+                        </div>
+                        <p class="text-muted" style="margin: 0.25rem 0 0 0; font-size: 0.875rem;">
+                            {{ skill.years_experience }} years experience
+                        </p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No skills listed</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Experience -->
+                <div class="glass-card">
+                    <h3 style="margin-bottom: 1rem;">Work Experience</h3>
+                    {% for exp in experiences %}
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; 
+                                    {% if not forloop.last %}border-bottom: 1px solid var(--border-color);{% endif %}">
+                        <h4 style="margin: 0;">{{ exp.job_title }}</h4>
+                        <p class="text-muted" style="margin: 0.25rem 0;">{% if blind_mode %}Company (hidden){% else %}{{ exp.company }}{% endif %}</p>
+                        <p class="text-muted" style="font-size: 0.875rem;">
+                            {{ exp.start_date|date:"M Y" }} -
+                            {% if exp.is_current %}Present{% else %}{{ exp.end_date|date:"M Y" }}{% endif %}
+                        </p>
+                        {% if exp.description %}
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem;">{{ exp.description }}</p>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No experience listed</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center" style="margin-top: 2rem;">
+            {% if user.is_staff %}
+            <a href="{% url 'view_applications' job.id %}" class="btn btn-secondary">Back to Applications</a>
+            {% else %}
+            <a href="{% url 'candidate_profile' %}" class="btn btn-secondary">Back to My Applications</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Candidate Registration - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="glass-card fade-in">
+        <h1 class="text-center" style="font-family: var(--font-display); margin-bottom: 1rem;">
+            Join as a Candidate
+        </h1>
+        <p class="text-center text-muted" style="margin-bottom: 2rem;">
+            Create your profile and let AI find the perfect opportunities for you
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="full_name" class="form-label">Full Name</label>
+                <input type="text" id="full_name" name="full_name" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone Number (Optional)</label>
+                <input type="tel" id="phone" name="phone" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-input" required minlength="6">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                Create Account
+            </button>
+        </form>
+
+        <div class="text-center"
+            style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+            <p class="text-muted">
+                Already have an account?
+                <a href="{% url 'login' %}" style="color: var(--primary-color);">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

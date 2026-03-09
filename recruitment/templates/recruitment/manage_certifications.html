@@ -1,0 +1,128 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}My Certifications - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="mb-4">My Certifications</h2>
+
+            <!-- Add New Certification -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Add New Certification</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Certification Name *</label>
+                                <input type="text" name="name" class="form-control" required 
+                                       placeholder="e.g. AWS Solutions Architect">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Issuing Organization *</label>
+                                <input type="text" name="issuing_organization" class="form-control" required
+                                       placeholder="e.g. Amazon Web Services">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Issue Date *</label>
+                                <input type="date" name="issue_date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Expiration Date</label>
+                                <input type="date" name="expiration_date" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Credential ID</label>
+                                <input type="text" name="credential_id" class="form-control"
+                                       placeholder="Certificate ID or number">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Credential URL</label>
+                                <input type="url" name="credential_url" class="form-control"
+                                       placeholder="https://...">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Certificate File</label>
+                                <input type="file" name="certificate_file" class="form-control" 
+                                       accept=".pdf,.jpg,.jpeg,.png">
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Add Certification
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Certifications List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Certifications</h5>
+                </div>
+                <div class="card-body">
+                    {% for cert in certifications %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">{{ cert.name }}</h5>
+                                <p class="text-muted mb-1">{{ cert.issuing_organization }}</p>
+                                <small class="text-muted">
+                                    Issued: {{ cert.issue_date }}
+                                    {% if cert.expiration_date %}
+                                    | Expires: {{ cert.expiration_date }}
+                                    {% else %}
+                                    | No Expiration
+                                    {% endif %}
+                                </small>
+                                {% if cert.credential_id %}
+                                <br><small>Credential ID: {{ cert.credential_id }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                {% with verification=cert.verifications.first %}
+                                {% if verification %}
+                                <span class="badge bg-{% if verification.status == 'verified' %}success{% elif verification.status == 'pending' %}warning{% elif verification.status == 'failed' %}danger{% else %}secondary{% endif %}">
+                                    {{ verification.get_status_display }}
+                                </span>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        {% if cert.credential_url %}
+                        <div class="mt-2">
+                            <a href="{{ cert.credential_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-link-45deg"></i> View Credential
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-info mb-0">
+                        You haven't added any certifications yet. Add your first certification above!
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Verification Info -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5><i class="bi bi-shield-check"></i> About Verification</h5>
+                    <p class="text-muted mb-0">
+                        When you add a certification, it will be submitted for verification. 
+                        Recruiters can verify your certifications to increase trust in your profile.
+                        Make sure to provide the Credential ID or URL for faster verification.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

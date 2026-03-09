@@ -1,0 +1,74 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Salary Estimator - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Salary Estimator</h2>
+    <p>Find out what you should be earning based on market data.</p>
+    
+    <form method="post" class="salary-form">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Job Title</label>
+                <input type="text" name="job_title" required class="form-control" placeholder="e.g. Software Engineer" value="{{ job_title|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" name="location" required class="form-control" placeholder="e.g. New York" value="{{ location|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label>Experience Level</label>
+                <select name="experience" class="form-control">
+                    <option value="entry">Entry Level (0-2 years)</option>
+                    <option value="mid">Mid Level (3-5 years)</option>
+                    <option value="senior">Senior (6-10 years)</option>
+                    <option value="lead">Lead/Manager (10+ years)</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Get Salary Estimate</button>
+    </form>
+    
+    {% if salary_data %}
+        <div class="salary-results">
+            <h3>Salary Range for {{ job_title }} in {{ location }}</h3>
+            
+            {% if avg_median %}
+                <div class="salary-highlight">
+                    <h4>Median Salary: ${{ avg_median }}</h4>
+                </div>
+            {% endif %}
+            
+            <table class="salary-table">
+                <thead>
+                    <tr>
+                        <th>Company Size</th>
+                        <th>Employment Type</th>
+                        <th>Min</th>
+                        <th>Max</th>
+                        <th>Median</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in salary_data %}
+                    <tr>
+                        <td>{{ data.company_size|default:"All" }}</td>
+                        <td>{{ data.get_employment_type_display }}</td>
+                        <td>${{ data.salary_min }}</td>
+                        <td>${{ data.salary_max }}</td>
+                        <td>${{ data.salary_median }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% elif no_data %}
+        <div class="alert alert-info">
+            <p>No salary data found for "{{ job_title }}" in "{{ location }}". Try different keywords.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

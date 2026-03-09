@@ -1,0 +1,93 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Manage Referrals - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="fade-in">
+        <div class="glass-card">
+            <h1 style="margin-bottom: 1.5rem;">Manage Referrals</h1>
+            
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if referrals %}
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color);">
+                            <th style="padding: 1rem; text-align: left;">Candidate</th>
+                            <th style="padding: 1rem; text-align: left;">Job</th>
+                            <th style="padding: 1rem; text-align: left;">Status</th>
+                            <th style="padding: 1rem; text-align: left;">Referred On</th>
+                            <th style="padding: 1rem; text-align: left;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for referral in referrals %}
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 1rem;">
+                                <p style="margin: 0; font-weight: 600;">{{ referral.referred_candidate.full_name }}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.875rem; color: var(--text-muted);">
+                                    {{ referral.referred_candidate.email }}
+                                </p>
+                            </td>
+                            <td style="padding: 1rem;">
+                                {% if referral.job %}
+                                <p style="margin: 0;">{{ referral.job.title }}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.875rem; color: var(--text-muted);">
+                                    {{ referral.job.company }}
+                                </p>
+                                {% else %}
+                                <p style="margin: 0; color: var(--text-muted);">General Referral</p>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem;">
+                                {% if referral.status == 'pending' %}
+                                <span class="badge badge-warning">Pending</span>
+                                {% elif referral.status == 'interviewing' %}
+                                <span class="badge badge-info">Interviewing</span>
+                                {% elif referral.status == 'hired' %}
+                                <span class="badge badge-success">Hired</span>
+                                {% elif referral.status == 'bonus_paid' %}
+                                <span class="badge badge-primary">Bonus Paid</span>
+                                {% else %}
+                                <span class="badge badge-secondary">{{ referral.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem;">
+                                {{ referral.referred_at|date:"M d, Y" }}
+                            </td>
+                            <td style="padding: 1rem;">
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="referral_id" value="{{ referral.id }}">
+                                    <select name="status" style="padding: 0.5rem; margin-right: 0.5rem;">
+                                        <option value="pending" {% if referral.status == 'pending' %}selected{% endif %}>Pending</option>
+                                        <option value="interviewing" {% if referral.status == 'interviewing' %}selected{% endif %}>Interviewing</option>
+                                        <option value="hired" {% if referral.status == 'hired' %}selected{% endif %}>Hired</option>
+                                        <option value="bonus_paid" {% if referral.status == 'bonus_paid' %}selected{% endif %}>Bonus Paid</option>
+                                        <option value="rejected" {% if referral.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted">No referrals received yet.</p>
+            {% endif %}
+            
+            <div style="margin-top: 1.5rem;">
+                <a href="{% url 'referral_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+                <a href="{% url 'submit_referral' %}" class="btn btn-primary">Submit New Referral</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

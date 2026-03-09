@@ -1,0 +1,96 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Premium Plans - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Upgrade Your Profile</h2>
+    <p>Get more visibility and opportunities with premium features.</p>
+    
+    {% if premium %}
+        <div class="current-plan">
+            <h3>Current Plan: {{ premium.get_plan_display }}</h3>
+            {% if premium.plan != 'free' %}
+                <p>Applications remaining: {{ premium.applications_remaining }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <div class="pricing-grid">
+        <div class="pricing-card">
+            <h3>Free</h3>
+            <div class="price">$0<span>/month</span></div>
+            <ul>
+                <li>✅ Basic profile</li>
+                <li>✅ 5 applications/month</li>
+                <li>✅ Job alerts</li>
+                <li>✅ Basic messaging</li>
+                <li>❌ Resume highlighting</li>
+                <li>❌ Priority placement</li>
+                <li>❌ Skill assessments</li>
+            </ul>
+            {% if premium and premium.plan != 'free' %}
+                <button class="btn btn-outline" disabled>Current Plan</button>
+            {% else %}
+                <button class="btn btn-outline" disabled>Free</button>
+            {% endif %}
+        </div>
+        
+        <div class="pricing-card silver">
+            <h3>Silver</h3>
+            <div class="price">$9.99<span>/month</span></div>
+            <ul>
+                <li>✅ Everything in Free</li>
+                <li>✅ 25 applications/month</li>
+                <li>✅ Resume highlighting</li>
+                <li>✅ Unlimited skill tests</li>
+                <li>✅ Interview preparation</li>
+                <li>❌ Priority placement</li>
+            </ul>
+            {% if premium and premium.plan == 'silver' %}
+                <button class="btn btn-primary" disabled>Current Plan</button>
+            {% else %}
+                <a href="{% url 'upgrade_premium' 'silver' %}" class="btn btn-primary">Upgrade</a>
+            {% endif %}
+        </div>
+        
+        <div class="pricing-card gold">
+            <div class="badge-popular">Most Popular</div>
+            <h3>Gold</h3>
+            <div class="price">$19.99<span>/month</span></div>
+            <ul>
+                <li>✅ Everything in Silver</li>
+                <li>✅ 100 applications/month</li>
+                <li>✅ Profile highlighting</li>
+                <li>✅ Priority in search results</li>
+                <li>✅ Advanced analytics</li>
+                <li>✅ Certification verification</li>
+            </ul>
+            {% if premium and premium.plan == 'gold' %}
+                <button class="btn btn-primary" disabled>Current Plan</button>
+            {% else %}
+                <a href="{% url 'upgrade_premium' 'gold' %}" class="btn btn-primary">Upgrade</a>
+            {% endif %}
+        </div>
+        
+        <div class="pricing-card platinum">
+            <h3>Platinum</h3>
+            <div class="price">$39.99<span>/month</span></div>
+            <ul>
+                <li>✅ Everything in Gold</li>
+                <li>✅ Unlimited applications</li>
+                <li>✅ Featured profile</li>
+                <li>✅ Direct recruiter outreach</li>
+                <li>✅ Background check priority</li>
+                <li>✅ ATS integration access</li>
+            </ul>
+            {% if premium and premium.plan == 'platinum' %}
+                <button class="btn btn-primary" disabled>Current Plan</button>
+            {% else %}
+                <a href="{% url 'upgrade_premium' 'platinum' %}" class="btn btn-primary">Upgrade</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

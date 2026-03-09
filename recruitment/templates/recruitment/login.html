@@ -1,0 +1,38 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Login - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="glass-card fade-in">
+        <h1 class="text-center" style="font-family: var(--font-display); margin-bottom: 2rem;">
+            Welcome Back
+        </h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-input" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+        </form>
+
+        <div class="text-center"
+            style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+            <p class="text-muted">Don't have an account?</p>
+            <div class="flex gap-2" style="justify-content: center; margin-top: 1rem;">
+                <a href="{% url 'register_candidate' %}" class="btn btn-secondary">Sign up as Candidate</a>
+                <a href="{% url 'register_recruiter' %}" class="btn btn-secondary">Sign up as Recruiter</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

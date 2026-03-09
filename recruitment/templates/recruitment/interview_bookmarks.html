@@ -1,0 +1,70 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}My Interview Bookmarks - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="mb-4">My Interview Practice Bookmarks</h2>
+
+            <div class="card">
+                <div class="card-body">
+                    {% for bookmark in bookmarks %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex gap-2 mb-2">
+                                    <span class="badge bg-{% if bookmark.question.question_type == 'technical' %}info{% elif bookmark.question.question_type == 'behavioral' %}primary{% else %}secondary{% endif %}">
+                                        {{ bookmark.question.get_question_type_display }}
+                                    </span>
+                                    <span class="badge bg-{% if bookmark.question.difficulty == 'easy' %}success{% elif bookmark.question.difficulty == 'medium' %}warning{% else %}danger{% endif %}">
+                                        {{ bookmark.question.get_difficulty_display }}
+                                    </span>
+                                    {% if bookmark.is_practiced %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Practiced</span>
+                                    {% endif %}
+                                </div>
+                                <h5>{{ bookmark.question.question_text }}</h5>
+                                <p class="text-muted mb-2">
+                                    <small>Role: {{ bookmark.question.job_title }}</small>
+                                </p>
+                                
+                                {% if bookmark.my_answer %}
+                                <div class="alert alert-light mt-2">
+                                    <strong>My Answer:</strong>
+                                    <p class="mb-0">{{ bookmark.my_answer }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary toggle-practice" data-bookmark-id="{{ bookmark.id }}">
+                                <i class="bi bi-check2-square"></i>
+                            </button>
+                        </div>
+                    {% empty %}
+                    <div class="alert alert-info mb-0">
+                        You haven't bookmarked any interview questions yet. 
+                        <a href="{% url 'interview_questions' %}">Browse questions</a> to start practicing!
+                    </div>
+                    {% endfor %}
+                </div>
+
+            <div class="mt-3">
+                <a href="{% url 'interview_questions' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-circle"></i> Browse More Questions
+                </a>
+            </div>
+    </div>
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.toggle-practice').forEach(btn => {
+    btn.addEventListener('click', function() {
+        this.classList.toggle('btn-outline-primary');
+        this.classList.toggle('btn-success');
+        location.reload();
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

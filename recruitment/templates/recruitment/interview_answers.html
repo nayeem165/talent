@@ -1,0 +1,382 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}My Interview Answers{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>My Interview Answers</h2>
+            <p>Review your saved answers to interview questions.</p>
+        </div>
+        
+        <div class="card-body">
+            {% if answers %}
+                <div class="answers-list">
+                    {% for answer in answers %}
+                        <div class="answer-card">
+                            <div class="answer-header">
+                                <h3>{{ answer.question.job_title }} Interview</h3>
+                                <div class="answer-meta">
+                                    <span class="badge">{{ answer.question.get_question_type_display }}</span>
+                                    <span class="badge">{{ answer.question.get_difficulty_display }}</span>
+                                    {% if answer.question.company %}
+                                        <span class="badge">{{ answer.question.company.name }}</span>
+                                    {% endif %}
+                                    <span class="date">{{ answer.created_at|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="question-content">
+                                <p><strong>Question:</strong> {{ answer.question.question_text }}</p>
+                            </div>
+                            
+                            <div class="answer-content">
+                                <p><strong>Your Answer:</strong></p>
+                                <div class="answer-text">{{ answer.answer_text|linebreaks }}</div>
+                            </div>
+                            
+                            {% if answer.question.sample_answer %}
+                                <details class="sample-answer">
+                                    <summary>Sample Answer</summary>
+                                    <p>{{ answer.question.sample_answer }}</p>
+                                </details>
+                            {% endif %}
+                            
+                            <div class="answer-actions">
+                                <button type="button" 
+                                        class="btn btn-outline edit-answer" 
+                                        data-answer-id="{{ answer.id }}">
+                                    Edit Answer
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-danger delete-answer" 
+                                        data-answer-id="{{ answer.id }}">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="practice-actions">
+                    <a href="{% url 'practice_interview_questions' %}" class="btn btn-primary">Practice More Questions</a>
+                    <a href="{% url 'interview_questions' %}" class="btn btn-outline">Browse Questions</a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No saved answers yet</h3>
+                    <p>Start practicing interview questions to save your answers here.</p>
+                    <a href="{% url 'practice_interview_questions' %}" class="btn btn-primary">Start Practicing</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Edit Answer Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Your Answer</h3>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="editQuestion"></div>
+            <form id="editForm">
+                <textarea id="editAnswer" name="answer" rows="6" placeholder="Update your answer..."></textarea>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentAnswerId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit answer functionality
+    document.querySelectorAll('.edit-answer').forEach(button => {
+        button.addEventListener('click', function() {
+            const answerId = this.dataset.answerId;
+            const answerCard = this.closest('.answer-card');
+            const questionText = answerCard.querySelector('.question-content p').textContent.replace('Question: ', '');
+            const currentAnswer = answerCard.querySelector('.answer-text').textContent.trim();
+            
+            currentAnswerId = answerId;
+            document.getElementById('editQuestion').textContent = questionText;
+            document.getElementById('editAnswer').value = currentAnswer;
+            document.getElementById('editModal').style.display = 'block';
+        });
+    });
+    
+    // Delete answer functionality
+    document.querySelectorAll('.delete-answer').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this answer?')) {
+                const answerId = this.dataset.answerId;
+                
+                fetch(`/interview/answer/${answerId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.closest('.answer-card').remove();
+                        if (document.querySelectorAll('.answer-card').length === 0) {
+                            location.reload();
+                        }
+                    } else {
+                        alert('Error deleting answer. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting answer. Please try again.');
+                });
+            }
+        });
+    });
+    
+    // Edit form submission
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const newAnswer = document.getElementById('editAnswer').value.trim();
+        
+        if (!newAnswer) {
+            alert('Please write an answer.');
+            return;
+        }
+        
+        fetch(`/interview/answer/${currentAnswerId}/edit/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `answer=${encodeURIComponent(newAnswer)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeModal();
+                location.reload();
+            } else {
+                alert('Error updating answer. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating answer. Please try again.');
+        });
+    });
+    
+    // Modal close functionality
+    document.querySelector('.close').addEventListener('click', closeModal);
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+});
+
+function closeModal() {
+    document.getElementById('editModal').style.display = 'none';
+    currentAnswerId = null;
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.answers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.answer-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    background: var(--bg-card);
+}
+
+.answer-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.answer-header h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.answer-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.answer-meta .badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+}
+
+.date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.question-content, .answer-content {
+    margin-bottom: var(--spacing-md);
+}
+
+.question-content strong, .answer-content strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.answer-text {
+    background: var(--bg-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--primary-color);
+    white-space: pre-wrap;
+}
+
+.sample-answer {
+    background: rgba(67, 232, 123, 0.1);
+    border: 1px solid var(--success-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.sample-answer summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--success-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.sample-answer p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.answer-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.practice-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    margin-top: var(--spacing-xl);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+.empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: var(--bg-card);
+    margin: 10% auto;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 600px;
+}
+
+.modal-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.close {
+    color: var(--text-secondary);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: var(--spacing-lg);
+}
+
+.modal-body #editQuestion {
+    background: var(--bg-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.modal-body textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: var(--spacing-md);
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+}
+</style>
+{% endblock %}

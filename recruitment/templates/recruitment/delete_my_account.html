@@ -1,0 +1,18 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Delete Account - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 3rem;">
+    <div class="glass-card">
+        <h1 style="font-family: var(--font-display); margin-bottom: 1rem;">Delete My Account</h1>
+        <p>This will permanently delete your account and all associated data. This action cannot be undone.</p>
+        <p class="text-muted">Consider <a href="{% url 'export_my_data' %}">exporting your data</a> first.</p>
+        <form method="post" onsubmit="return confirm('Are you sure? This cannot be undone.');" style="margin-top: 2rem;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete Account Permanently</button>
+            <a href="{% url 'candidate_profile' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

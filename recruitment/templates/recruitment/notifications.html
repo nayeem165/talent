@@ -1,0 +1,50 @@
+{% extends 'recruitment/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Notifications</h1>
+    <p class="text-muted">Your email notification history</p>
+    
+    {% if notifications %}
+        <div class="notifications-list">
+            {% for notification in notifications %}
+            <div class="glass-card {% if not notification.is_read %}unread{% endif %}" style="margin-bottom: 1rem; padding: 1.5rem;">
+                <div class="flex-between">
+                    <div>
+                        <h4 style="margin: 0 0 0.5rem 0;">
+                            {% if not notification.is_read %}
+                            <span class="badge badge-primary">New</span>
+                            {% endif %}
+                            {{ notification.subject }}
+                        </h4>
+                        <p class="text-muted">{{ notification.message|truncatewords:30 }}</p>
+                        <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                    </div>
+                    <div>
+                        {% if notification.related_job %}
+                        <a href="{% url 'job_detail' notification.related_job.id %}" class="btn btn-secondary">View Job</a>
+                        {% endif %}
+                        {% if not notification.is_read %}
+                        <a href="{% url 'mark_notification_read' notification.id %}" class="btn btn-primary">Mark Read</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card text-center">
+            <h3>No Notifications</h3>
+            <p>You don't have any notifications yet.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.unread {
+    border-left: 4px solid var(--primary);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(30, 30, 60, 0.3) 100%);
+}
+</style>
+{% endblock %}
+

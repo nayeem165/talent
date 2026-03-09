@@ -1,0 +1,28 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Request Work Verification{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 2rem;">
+    <div class="glass-card">
+        <h1 style="font-family: var(--font-display); margin-bottom: 1rem;">Verify Work History</h1>
+        <p>Request verification for: <strong>{{ experience.job_title }}</strong> at {{ experience.company }}</p>
+        <p class="text-muted">Provide the email of someone who can verify this (e.g., HR or manager).</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Verifier Name *</label>
+                <input type="text" name="verifier_name" class="form-input" required 
+                       placeholder="e.g. Jane Smith">
+            </div>
+            <div class="form-group">
+                <label>Verifier Email *</label>
+                <input type="email" name="verifier_email" class="form-input" required 
+                       placeholder="jane@company.com">
+            </div>
+            <button type="submit" class="btn btn-primary">Request Verification</button>
+            <a href="{% url 'candidate_profile' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

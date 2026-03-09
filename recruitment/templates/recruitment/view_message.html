@@ -1,0 +1,47 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}View Message - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="fade-in">
+        <div class="glass-card">
+            <h1 style="margin-bottom: 1.5rem;">Message Details</h1>
+            
+            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                <div class="flex-between" style="margin-bottom: 1rem;">
+                    <div>
+                        <p style="margin: 0;"><strong>From:</strong> {{ message.sender.username }}</p>
+                        <p style="margin: 0.5rem 0;"><strong>To:</strong> {{ message.recipient.username }}</p>
+                    </div>
+                    <span class="text-muted">{{ message.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+                
+                <h2 style="margin-bottom: 1rem;">{{ message.subject }}</h2>
+                
+                <div style="line-height: 1.8;">
+                    {{ message.body|linebreaks }}
+                </div>
+                
+                {% if message.related_application %}
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <p style="margin: 0;"><strong>Related Application:</strong></p>
+                    <a href="{% url 'application_detail' message.related_application.id %}" class="btn btn-secondary" style="margin-top: 0.5rem;">
+                        View Application
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div>
+                <a href="{% url 'inbox' %}" class="btn btn-secondary">Back to Inbox</a>
+                {% if message.sender != request.user %}
+                <a href="{% url 'compose_message' %}?reply_to={{ message.sender.username }}&subject=Re: {{ message.subject }}" 
+                   class="btn btn-primary">Reply</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

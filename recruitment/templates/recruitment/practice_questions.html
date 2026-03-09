@@ -1,0 +1,235 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Practice Interview Questions{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Interview Question Practice</h2>
+            <p>Practice answering common interview questions to prepare for your next interview.</p>
+        </div>
+        
+        <div class="card-body">
+            {% if questions %}
+                <div class="practice-session">
+                    {% for question in questions %}
+                        <div class="question-card" data-question-id="{{ question.id }}">
+                            <div class="question-header">
+                                <h3>{{ question.job_title }} Interview</h3>
+                                <div class="question-meta">
+                                    <span class="badge">{{ question.get_question_type_display }}</span>
+                                    <span class="badge">{{ question.get_difficulty_display }}</span>
+                                    {% if question.company %}
+                                        <span class="badge">{{ question.company.name }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="question-content">
+                                <p>{{ question.question_text }}</p>
+                                
+                                {% if question.sample_answer %}
+                                    <details class="sample-answer">
+                                        <summary>Sample Answer</summary>
+                                        <p>{{ question.sample_answer }}</p>
+                                    </details>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="answer-section">
+                                <label for="answer-{{ question.id }}">Your Answer:</label>
+                                <textarea id="answer-{{ question.id }}" 
+                                          name="answer" 
+                                          rows="4" 
+                                          placeholder="Write your answer here..."
+                                          class="answer-input"></textarea>
+                                <button type="button" 
+                                        class="btn btn-primary save-answer" 
+                                        data-question-id="{{ question.id }}">
+                                    Save Answer
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="practice-actions">
+                    <a href="{% url 'interview_questions' %}" class="btn btn-outline">Browse More Questions</a>
+                    <a href="{% url 'my_interview_bookmarks' %}" class="btn btn-primary">View My Answers</a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No questions available</h3>
+                    <p>Bookmark some interview questions first to start practicing.</p>
+                    <a href="{% url 'interview_questions' %}" class="btn btn-primary">Browse Questions</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Save answer functionality
+    document.querySelectorAll('.save-answer').forEach(button => {
+        button.addEventListener('click', function() {
+            const questionId = this.dataset.questionId;
+            const answerInput = document.getElementById(`answer-${questionId}`);
+            const answer = answerInput.value.trim();
+            
+            if (!answer) {
+                alert('Please write an answer first.');
+                return;
+            }
+            
+            // Send answer to server
+            fetch(`/interview/question/${questionId}/answer/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `answer=${encodeURIComponent(answer)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.textContent = 'Answer Saved!';
+                    this.classList.add('btn-success');
+                    setTimeout(() => {
+                        this.textContent = 'Save Answer';
+                        this.classList.remove('btn-success');
+                    }, 2000);
+                } else {
+                    alert('Error saving answer. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving answer. Please try again.');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.practice-session {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.question-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    background: var(--bg-card);
+}
+
+.question-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.question-header h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.question-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.question-meta .badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+}
+
+.question-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.sample-answer {
+    background: rgba(67, 232, 123, 0.1);
+    border: 1px solid var(--success-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.sample-answer summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--success-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.sample-answer p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.answer-section {
+    margin-top: var(--spacing-lg);
+}
+
+.answer-section label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.answer-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: var(--spacing-md);
+}
+
+.save-answer {
+    transition: all 0.3s ease;
+}
+
+.save-answer.btn-success {
+    background: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.practice-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    margin-top: var(--spacing-xl);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+.empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+</style>
+{% endblock %}

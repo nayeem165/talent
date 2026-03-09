@@ -1,0 +1,67 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Application Analytics - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Application Analytics</h2>
+    <p>Track your job application performance.</p>
+    
+    <div class="analytics-summary">
+        <div class="stat-card">
+            <h3>{{ total_applications }}</h3>
+            <p>Total Applications</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ pending }}</h3>
+            <p>Pending</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ shortlisted }}</h3>
+            <p>Shortlisted</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ interview }}</h3>
+            <p>Interview Calls</p>
+        </div>
+        <div class="stat-card success">
+            <h3>{{ offered }}</h3>
+            <p>Offers Received</p>
+        </div>
+    </div>
+    
+    <div class="analytics-chart">
+        <h3>Application Status Breakdown</h3>
+        <div class="progress">
+            <div class="progress-bar bg-warning" style="width: {% widthratio pending total_applications 100 %}%">Pending {{ pending }}</div>
+            <div class="progress-bar bg-info" style="width: {% widthratio under_review total_applications 100 %}%">Review {{ under_review }}</div>
+            <div class="progress-bar bg-primary" style="width: {% widthratio shortlisted total_applications 100 %}%">Shortlisted {{ shortlisted }}</div>
+            <div class="progress-bar bg-success" style="width: {% widthratio interview total_applications 100 %}%">Interview {{ interview }}</div>
+            <div class="progress-bar bg-danger" style="width: {% widthratio rejected total_applications 100 %}%">Rejected {{ rejected }}</div>
+        </div>
+    </div>
+    
+    {% if monthly %}
+    <div class="monthly-trend">
+        <h3>Monthly Applications</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Applications</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in monthly %}
+                <tr>
+                    <td>{{ m.month|date:"F Y" }}</td>
+                    <td>{{ m.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

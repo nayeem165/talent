@@ -1,0 +1,139 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}ATS Integrations - TalentSleuth{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>ATS Integrations</h2>
+            </div>
+
+            <!-- Add New Integration -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Add New ATS Integration</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">ATS Platform *</label>
+                                <select name="integration_type" class="form-select" required>
+                                    <option value="">Select Platform</option>
+                                    <option value="workday">Workday</option>
+                                    <option value="greenhouse">Greenhouse</option>
+                                    <option value="lever">Lever</option>
+                                    <option value="bamboohr">BambooHR</option>
+                                    <option value="custom">Custom API</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">API Key</label>
+                                <input type="text" name="api_key" class="form-control" 
+                                       placeholder="Enter API key">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Webhook URL</label>
+                                <input type="url" name="webhook_url" class="form-control"
+                                       placeholder="https://your-app.com/webhook/ats">
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Add Integration
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Integrations List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Integrations</h5>
+                </div>
+                <div class="card-body">
+                    {% for integration in integrations %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if integration.integration_type == 'workday' %}
+                                    <i class="bi bi-box-seam fs-4 text-primary"></i>
+                                    {% elif integration.integration_type == 'greenhouse' %}
+                                    <i class="bi bi-tree fs-4 text-success"></i>
+                                    {% elif integration.integration_type == 'lever' %}
+                                    <i class="bi bi-diagram-3 fs-4 text-warning"></i>
+                                    {% elif integration.integration_type == 'bamboohr' %}
+                                    <i class="bi bi-briefcase fs-4 text-info"></i>
+                                    {% else %}
+                                    <i class="bi bi-code-slash fs-4 text-secondary"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">{{ integration.get_integration_type_display }}</h5>
+                                    <small class="text-muted">
+                                        Last sync: {% if integration.last_sync %}{{ integration.last_sync|date:"M d, Y H:i" }}{% else %}Never{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{% if integration.status == 'active' %}success{% elif integration.status == 'error' %}danger{% else %}secondary{% endif %} mb-2 d-block">
+                                    {{ integration.get_status_display }}
+                                </span>
+                                <a href="{% url 'sync_ats' integration.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-arrow-repeat"></i> Sync Now
+                                </a>
+                            </div>
+                        </div>
+                        {% if integration.webhook_url %}
+                        <div class="mt-2">
+                            <small class="text-muted">Webhook: {{ integration.webhook_url }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-info mb-0">
+                        No ATS integrations configured. Add your first integration above!
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Integration Benefits -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5><i class="bi bi-arrow-left-right"></i> Sync Capabilities</h5>
+                            <ul class="mb-0">
+                                <li>Import candidates automatically</li>
+                                <li>Export job postings to ATS</li>
+                                <li>Sync application statuses</li>
+                                <li>Real-time webhook updates</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5><i class="bi bi-shield-check"></i> Security</h5>
+                            <ul class="mb-0">
+                                <li>Encrypted API keys</li>
+                                <li>Secure webhook endpoints</li>
+                                <li>OAuth 2.0 authentication</li>
+                                <li>Data retention policies</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

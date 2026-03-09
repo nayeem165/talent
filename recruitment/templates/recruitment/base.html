@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TalentSleuth AI - Autonomous Candidate Intelligence{% endblock %}</title>
+    <meta name="description" content="{% block description %}AI-powered recruitment platform for smarter hiring decisions{% endblock %}">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="{% url 'home' %}" class="navbar-brand">🎯 TalentSleuth AI</a>
+            <ul class="navbar-menu">
+                <li><a href="{% url 'job_listings' %}" class="navbar-link">Jobs</a></li>
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'recruiter_dashboard' %}" class="navbar-link">Dashboard</a></li>
+                        <li><a href="{% url 'create_job' %}" class="navbar-link">Post Job</a></li>
+                    {% else %}
+                        <li><a href="{% url 'candidate_profile' %}" class="navbar-link">My Profile</a></li>
+                        <li><a href="{% url 'saved_jobs' %}" class="navbar-link">Saved Jobs</a></li>
+                        <li><a href="{% url 'recommended_jobs' %}" class="navbar-link">For You</a></li>
+                        <li><a href="{% url 'assessment_list' %}" class="navbar-link">Skill Tests</a></li>
+                        <li><a href="{% url 'interview_questions' %}" class="navbar-link">Interview Prep</a></li>
+                        <li><a href="{% url 'application_analytics' %}" class="navbar-link">Analytics</a></li>
+                        <li><a href="{% url 'inbox' %}" class="navbar-link">Messages</a></li>
+                        <li><a href="{% url 'premium_plans' %}" class="navbar-link">Premium</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'logout' %}" class="navbar-link">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" class="navbar-link">Login</a></li>
+                    <li><a href="{% url 'register_candidate' %}" class="btn btn-primary">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container" style="margin-top: 1rem;">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-warning{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--bg-secondary); padding: 3rem 0; margin-top: 4rem; border-top: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="grid grid-3">
+                <div>
+                    <h3 class="navbar-brand" style="font-size: 1.25rem;">🎯 TalentSleuth AI</h3>
+                    <p class="text-muted" style="margin-top: 0.5rem;">Autonomous Candidate Intelligence Engine</p>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 1rem;">For Candidates</h4>
+                    <ul style="list-style: none;">
+                        <li><a href="{% url 'job_listings' %}" class="text-muted" style="text-decoration: none;">Browse Jobs</a></li>
+                        <li><a href="{% url 'salary_estimator' %}" class="text-muted" style="text-decoration: none;">Salary Estimator</a></li>
+                        <li><a href="{% url 'assessment_list' %}" class="text-muted" style="text-decoration: none;">Skill Tests</a></li>
+                        <li><a href="{% url 'resume_builder' %}" class="text-muted" style="text-decoration: none;">Resume Builder</a></li>
+                        <li><a href="{% url 'register_candidate' %}" class="text-muted" style="text-decoration: none;">Sign Up</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 1rem;">For Recruiters</h4>
+                    <ul style="list-style: none;">
+                        <li><a href="{% url 'register_recruiter' %}" class="text-muted" style="text-decoration: none;">Recruiter Sign Up</a></li>
+                        <li><a href="{% url 'create_job' %}" class="text-muted" style="text-decoration: none;">Post a Job</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="text-center text-muted" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <p>&copy; 2025 TalentSleuth AI. Powered by Django & AI Intelligence.</p>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

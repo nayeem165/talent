@@ -1,0 +1,43 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Share Interview Experience - {{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin-top: 2rem;">
+    <div class="glass-card">
+        <h1 style="font-family: var(--font-display); margin-bottom: 1rem;">Share Your Interview Experience</h1>
+        <p class="text-muted">{{ job.title }} at {{ job.company }}</p>
+        <p>Help other candidates prepare by sharing questions and difficulty.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Questions Asked *</label>
+                <textarea name="questions_asked" class="form-textarea" rows="4" required 
+                          placeholder="What questions did they ask?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Difficulty (1=Easy, 5=Hard)</label>
+                <select name="difficulty_rating" class="form-select">
+                    <option value="1">1 - Easy</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3 - Medium</option>
+                    <option value="4">4</option>
+                    <option value="5">5 - Hard</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Overall Experience</label>
+                <textarea name="overall_experience" class="form-textarea" rows="2" 
+                          placeholder="How was the interview process?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tips for Others</label>
+                <textarea name="tips" class="form-textarea" rows="2" 
+                          placeholder="Any tips for future candidates?"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Share</button>
+            <a href="{% url 'job_detail' job.id %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

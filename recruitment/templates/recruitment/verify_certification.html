@@ -1,0 +1,92 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Verify Certification - TalentSleuth AI{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="fade-in">
+        <div class="glass-card">
+            <h1 style="margin-bottom: 1.5rem;">Verify Certification</h1>
+            
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+            
+            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                <h3 style="margin-bottom: 1rem;">Certification Details</h3>
+                <p><strong>Name:</strong> {{ certification.name }}</p>
+                <p><strong>Issued By:</strong> {{ certification.issuing_organization }}</p>
+                <p><strong>Issue Date:</strong> {{ certification.issue_date|date:"M d, Y" }}</p>
+                {% if certification.expiration_date %}
+                <p><strong>Expiration Date:</strong> {{ certification.expiration_date|date:"M d, Y" }}</p>
+                {% endif %}
+                {% if certification.credential_id %}
+                <p><strong>Credential ID:</strong> {{ certification.credential_id }}</p>
+                {% endif %}
+                {% if certification.credential_url %}
+                <p><strong>Credential URL:</strong> <a href="{{ certification.credential_url }}" target="_blank">View Credential</a></p>
+                {% endif %}
+                {% if certification.certificate_file %}
+                <p><strong>Certificate File:</strong> <a href="{{ certification.certificate_file.url }}" target="_blank">Download</a></p>
+                {% endif %}
+            </div>
+            
+            {% with verification=certification.verifications.first %}
+            {% if verification %}
+            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                <h3 style="margin-bottom: 1rem;">Verification Status</h3>
+                <p><strong>Status:</strong> 
+                    {% if verification.status == 'verified' %}
+                    <span class="badge badge-success">{{ verification.get_status_display }}</span>
+                    {% elif verification.status == 'pending' %}
+                    <span class="badge badge-warning">{{ verification.get_status_display }}</span>
+                    {% elif verification.status == 'failed' %}
+                    <span class="badge badge-danger">{{ verification.get_status_display }}</span>
+                    {% else %}
+                    <span class="badge badge-secondary">{{ verification.get_status_display }}</span>
+                    {% endif %}
+                </p>
+                {% if verification.verified_by %}
+                <p><strong>Verified By:</strong> {{ verification.verified_by }}</p>
+                {% endif %}
+                {% if verification.verified_at %}
+                <p><strong>Verified At:</strong> {{ verification.verified_at|date:"M d, Y H:i" }}</p>
+                {% endif %}
+                {% if verification.verification_notes %}
+                <p><strong>Notes:</strong> {{ verification.verification_notes }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endwith %}
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Verification Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="pending">Pending Verification</option>
+                        <option value="verified">Verified</option>
+                        <option value="failed">Verification Failed</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-textarea" rows="4" 
+                              placeholder="Add verification notes..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Update Verification</button>
+                    <a href="{% url 'view_applications' 0 %}" class="btn btn-secondary">Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
