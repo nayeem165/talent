@@ -220,7 +220,10 @@
                             <div style="display: flex; gap: 0.5rem;">
                                 <a href="{% url 'application_detail' app.id %}" style="color: var(--accent-color);">View Details</a>
                                 {% if app.status == 'submitted' or app.status == 'under_review' %}
-                                <a href="{% url 'withdraw_application' app.id %}" class="text-muted" style="font-size: 0.875rem;">Withdraw</a>
+                                <form method="post" action="{% url 'withdraw_application' app.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-muted" style="font-size: 0.875rem; background: none; border: none; padding: 0; cursor: pointer;">Withdraw</button>
+                                </form>
                                 {% endif %}
                             </div>
                         </div>

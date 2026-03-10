@@ -10,11 +10,10 @@ from django.conf import settings
 from django.utils import timezone
 from .models import (
     Candidate, Job, Application, Skill, Experience, Education, JobAlert, 
-    EmailNotification, CompanyProfile, SavedJob, RecentSearch, Message, 
-    InterviewSchedule, CompanyReview, CompanyFollow, SkillAssessment, 
-    AssessmentResult, ResumeTemplate, CandidateResume, SalaryData, 
-    PremiumMembership, InterviewQuestion, InterviewQuestionBookmark,
-    Referral, ATSIntegration, BackgroundCheck, CandidateSearchProfile,
+    EmailNotification, CompanyProfile, SavedJob, RecentSearch, 
+    InterviewSchedule, CompanyReview, CompanyFollow, 
+    ResumeTemplate, CandidateResume, SalaryData, 
+    Referral, CandidateSearchProfile,
     Certification, CertificationVerification, ReferralBonus
 )
 from .ai_engine import TalentSleuthAI
@@ -41,7 +40,6 @@ def register_candidate(request):
             return render(request, 'recruitment/register.html')
         user = User.objects.create_user(username=username, email=email, password=password)
         candidate = Candidate.objects.create(user=user, full_name=full_name, email=email, phone=phone)
-        PremiumMembership.objects.create(candidate=candidate)
         login(request, user)
         messages.success(request, 'Welcome to TalentSleuth AI!')
         return redirect('candidate_profile')
@@ -119,7 +117,6 @@ def candidate_profile(request):
         messages.success(request, 'Profile updated')
     job_alerts = JobAlert.objects.filter(candidate=candidate)
     saved_jobs_count = SavedJob.objects.filter(candidate=candidate).count()
-    premium = getattr(candidate, 'premium', None)
     profile_completion = candidate.get_profile_completion_percentage()
     context = {
         'candidate': candidate,
@@ -129,7 +126,6 @@ def candidate_profile(request):
         'applications': candidate.applications.all().order_by('-applied_at')[:5],
         'job_alerts': job_alerts,
         'saved_jobs_count': saved_jobs_count,
-        'premium': premium,
         'profile_completion': profile_completion,
     }
     return render(request, 'recruitment/candidate_profile.html', context)
@@ -218,11 +214,6 @@ def apply_job(request, job_id):
     if Application.objects.filter(candidate=candidate, job=job).exists():
         messages.warning(request, 'Already applied')
         return redirect('job_detail', job_id=job_id)
-    premium = getattr(candidate, 'premium', None)
-    if premium and premium.plan != 'free':
-        if premium.applications_remaining <= 0:
-            messages.error(request, 'Application limit reached. Upgrade your plan!')
-            return redirect('job_detail', job_id=job_id)
     if request.method == 'POST':
         cover_letter = request.POST.get('cover_letter', '')
         application = Application.objects.create(candidate=candidate, job=job, cover_letter=cover_letter, status='submitted')
@@ -230,9 +221,6 @@ def apply_job(request, job_id):
             TalentSleuthAI.update_application_scores(application)
         except:
             pass
-        if premium and premium.plan != 'free':
-            premium.applications_used += 1
-            premium.save()
         messages.success(request, 'Application submitted!')
         return redirect('candidate_profile')
     return render(request, 'recruitment/apply_job.html', {'job': job})
@@ -278,39 +266,6 @@ def clear_searches(request):
     RecentSearch.objects.filter(candidate=candidate).delete()
     messages.success(request, 'Search history cleared')
     return redirect('job_listings')
-
-@login_required
-def inbox(request):
-    messages_list = Message.objects.filter(recipient=request.user).select_related('sender')
-    unread_count = messages_list.filter(is_read=False).count()
-    return render(request, 'recruitment/inbox.html', {'messages': messages_list, 'unread_count': unread_count})
-
-@login_required
-def sent_messages(request):
-    messages_list = Message.objects.filter(sender=request.user).select_related('recipient')
-    return render(request, 'recruitment/sent_messages.html', {'messages': messages_list})
-
-@login_required
-def compose_message(request):
-    if request.method == 'POST':
-        recipient_username = request.POST.get('recipient')
-        subject = request.POST.get('subject')
-        body = request.POST.get('body')
-        try:
-            recipient = User.objects.get(username=recipient_username)
-            Message.objects.create(sender=request.user, recipient=recipient, subject=subject, body=body)
-            messages.success(request, 'Message sent!')
-            return redirect('inbox')
-        except User.DoesNotExist:
-            messages.error(request, 'Recipient not found')
-    return render(request, 'recruitment/compose_message.html')
-
-@login_required
-def view_message(request, message_id):
-    message = get_object_or_404(Message, id=message_id, recipient=request.user)
-    message.is_read = True
-    message.save()
-    return render(request, 'recruitment/view_message.html', {'message': message})
 
 @login_required
 def company_reviews(request, company_id):
@@ -389,25 +344,6 @@ def assessment_list(request):
     return render(request, 'recruitment/assessment_list.html', {'assessments': assessments})
 
 @login_required
-def take_assessment(request, assessment_id):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('login')
-    assessment = get_object_or_404(SkillAssessment, id=assessment_id, is_active=True)
-    if request.method == 'POST':
-        score = int(request.POST.get('score', 0))
-        passed = score >= assessment.passing_score
-        AssessmentResult.objects.create(candidate=request.user.candidate_profile, assessment=assessment, score=score, passed=passed)
-        messages.success(request, f'Assessment completed! Score: {score}%')
-        return redirect('assessment_results')
-    return render(request, 'recruitment/take_assessment.html', {'assessment': assessment})
-
-@login_required
-def assessment_results(request):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    results = AssessmentResult.objects.filter(candidate=request.user.candidate_profile).select_related('assessment')
-    return render(request, 'recruitment/assessment_results.html', {'results': results})
-
 @login_required
 def resume_builder(request):
     if not hasattr(request.user, 'candidate_profile'):
@@ -445,59 +381,9 @@ def salary_estimator(request):
         context = {}
     return render(request, 'recruitment/salary_estimator.html', context)
 
-@login_required
-def premium_plans(request):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    candidate = request.user.candidate_profile
-    premium = getattr(candidate, 'premium', None)
-    return render(request, 'recruitment/premium_plans.html', {'premium': premium})
+
 
 @login_required
-def upgrade_premium(request, plan):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    candidate = request.user.candidate_profile
-    premium = getattr(candidate, 'premium', None)
-    if premium:
-        premium.plan = plan
-        if plan == 'free':
-            premium.applications_limit = 5
-            premium.is_highlighted = False
-            premium.is_priority = False
-            premium.is_featured = False
-        elif plan == 'silver':
-            premium.applications_limit = 25
-            premium.is_highlighted = True
-        elif plan == 'gold':
-            premium.applications_limit = 100
-            premium.is_highlighted = True
-            premium.is_priority = True
-        elif plan == 'platinum':
-            premium.applications_limit = 500
-            premium.is_highlighted = True
-            premium.is_priority = True
-            premium.is_featured = True
-        premium.save()
-        messages.success(request, f'Upgraded to {plan.title()} plan!')
-    return redirect('candidate_profile')
-
-@login_required
-def application_analytics(request):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    candidate = request.user.candidate_profile
-    applications = candidate.applications.all()
-    total_applications = applications.count()
-    pending = applications.filter(status='submitted').count()
-    under_review = applications.filter(status='under_review').count()
-    shortlisted = applications.filter(status='shortlisted').count()
-    interview = applications.filter(status='interview').count()
-    offered = applications.filter(status='offered').count()
-    rejected = applications.filter(status='rejected').count()
-    context = {'total_applications': total_applications, 'pending': pending, 'under_review': under_review, 'shortlisted': shortlisted, 'interview': interview, 'offered': offered, 'rejected': rejected}
-    return render(request, 'recruitment/application_analytics.html', context)
-
 @login_required
 def recruiter_dashboard(request):
     if not request.user.is_staff:
@@ -569,6 +455,17 @@ def update_application_status(request, application_id):
         application.save()
         return JsonResponse({'success': True, 'status': new_status})
     return JsonResponse({'error': 'Invalid status'}, status=400)
+
+@login_required
+def withdraw_application(request, application_id):
+    application = get_object_or_404(Application, id=application_id, candidate=request.user.candidate_profile)
+    if application.status in ['submitted', 'under_review']:
+        application.status = 'withdrawn'
+        application.save()
+        messages.success(request, 'Application withdrawn successfully')
+    else:
+        messages.error(request, 'Cannot withdraw this application')
+    return redirect('candidate_profile')
 
 @login_required
 def manage_job_alerts(request):
@@ -717,56 +614,6 @@ def quick_apply(request, job_id):
         premium.save()
     return JsonResponse({'success': True, 'message': 'Application submitted successfully!', 'application_id': application.id})
 
-def interview_questions(request):
-    job_title = request.GET.get('job_title', '')
-    company_id = request.GET.get('company_id')
-    question_type = request.GET.get('type', '')
-    questions = InterviewQuestion.objects.filter(is_active=True)
-    if job_title:
-        questions = questions.filter(job_title__icontains=job_title)
-    if company_id:
-        questions = questions.filter(company_id=company_id) | questions.filter(company__isnull=True)
-    if question_type:
-        questions = questions.filter(question_type=question_type)
-    return render(request, 'recruitment/interview_questions.html', {'questions': questions[:50], 'job_title': job_title, 'question_type': question_type})
-
-@login_required
-def bookmark_interview_question(request, question_id):
-    if not hasattr(request.user, 'candidate_profile'):
-        return JsonResponse({'error': 'Login required'}, status=401)
-    question = get_object_or_404(InterviewQuestion, id=question_id)
-    candidate = request.user.candidate_profile
-    bookmark, created = InterviewQuestionBookmark.objects.get_or_create(candidate=candidate, question=question)
-    return JsonResponse({'success': True, 'bookmarked': created})
-
-@login_required
-def practice_interview_questions(request):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    candidate = request.user.candidate_profile
-    bookmarked = InterviewQuestionBookmark.objects.filter(candidate=candidate).select_related('question')
-    if bookmarked.exists():
-        questions = [b.question for b in bookmarked]
-    else:
-        questions = list(InterviewQuestion.objects.filter(is_active=True)[:10])
-    return render(request, 'recruitment/practice_questions.html', {'questions': questions, 'is_practice_mode': True})
-
-@login_required
-def submit_question_answer(request, question_id):
-    if not hasattr(request.user, 'candidate_profile'):
-        return JsonResponse({'error': 'Login required'}, status=401)
-    question = get_object_or_404(InterviewQuestion, id=question_id)
-    candidate = request.user.candidate_profile
-    if request.method == 'POST':
-        answer = request.POST.get('answer', '')
-        bookmark, created = InterviewQuestionBookmark.objects.get_or_create(candidate=candidate, question=question, defaults={'my_answer': answer, 'is_practiced': True})
-        if not created:
-            bookmark.my_answer = answer
-            bookmark.is_practiced = True
-            bookmark.save()
-        return JsonResponse({'success': True})
-    return JsonResponse({'error': 'Invalid request'}, status=400)
-
 @login_required
 def manage_certifications(request):
     if not hasattr(request.user, 'candidate_profile'):
@@ -855,77 +702,6 @@ def manage_referrals(request):
         return redirect('manage_referrals')
     return render(request, 'recruitment/manage_referrals.html', {'referrals': referrals})
 
-@login_required
-def ats_integrations(request):
-    if not request.user.is_staff:
-        return redirect('home')
-    company_profile = getattr(request.user, 'company_profile', None)
-    if not company_profile:
-        messages.error(request, 'Company profile required')
-        return redirect('company_profile')
-    integrations = ATSIntegration.objects.filter(company=company_profile)
-    if request.method == 'POST':
-        integration_type = request.POST.get('integration_type')
-        api_key = request.POST.get('api_key', '')
-        webhook_url = request.POST.get('webhook_url', '')
-        ATSIntegration.objects.create(company=company_profile, integration_type=integration_type, api_key=api_key, webhook_url=webhook_url)
-        messages.success(request, 'ATS integration added!')
-        return redirect('ats_integrations')
-    return render(request, 'recruitment/ats_integrations.html', {'integrations': integrations})
-
-@login_required
-def sync_ats(request, integration_id):
-    if not request.user.is_staff:
-        return JsonResponse({'error': 'Access denied'}, status=403)
-    integration = get_object_or_404(ATSIntegration, id=integration_id, company__recruiter=request.user)
-    integration.last_sync = timezone.now()
-    integration.status = 'active'
-    integration.save()
-    messages.success(request, 'ATS sync completed!')
-    return redirect('ats_integrations')
-
-@login_required
-def background_checks(request):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    candidate = request.user.candidate_profile
-    checks = BackgroundCheck.objects.filter(candidate=candidate)
-    return render(request, 'recruitment/background_checks.html', {'checks': checks})
-
-@login_required
-def initiate_background_check(request):
-    if not request.user.is_staff:
-        return JsonResponse({'error': 'Access denied'}, status=403)
-    if request.method == 'POST':
-        candidate_id = request.POST.get('candidate_id')
-        check_type = request.POST.get('check_type')
-        provider = request.POST.get('provider')
-        candidate = get_object_or_404(Candidate, id=candidate_id)
-        check = BackgroundCheck.objects.create(candidate=candidate, check_type=check_type, provider=provider, status='initiated')
-        return JsonResponse({'success': True, 'check_id': check.id})
-    applications = Application.objects.filter(job__recruiter=request.user)
-    candidates = Candidate.objects.filter(id__in=applications.values('candidate_id')).distinct()
-    return render(request, 'recruitment/initiate_background_check.html', {'candidates': candidates})
-
-@login_required
-def update_background_check(request, check_id):
-    if not request.user.is_staff:
-        messages.error(request, 'Access denied')
-        return redirect('home')
-    check = get_object_or_404(BackgroundCheck, id=check_id)
-    if request.method == 'POST':
-        status = request.POST.get('status')
-        result = request.POST.get('result', '')
-        check.status = status
-        check.result_summary = result
-        if status == 'completed':
-            check.completed_at = timezone.now()
-            check.is_cleared = request.POST.get('is_cleared') == 'on'
-        check.save()
-        messages.success(request, 'Background check updated!')
-        return redirect('view_applications', job_id=0)
-    return render(request, 'recruitment/update_background_check.html', {'check': check})
-
 def job_search_chat(request):
     query = request.GET.get('q', '')
     jobs = []
@@ -995,40 +771,12 @@ def add_culture_score(request):
 
 # Recruiter assessment management views
 @login_required
-def create_assessment(request):
-    if not request.user.is_staff:
-        messages.error(request, 'Access denied')
-        return redirect('home')
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        passing_score = request.POST.get('passing_score', 70)
-        SkillAssessment.objects.create(
-            title=title,
-            description=description,
-            passing_score=passing_score,
-            created_by=request.user,
-            is_active=True
-        )
-        messages.success(request, 'Assessment created!')
-        return redirect('recruiter_dashboard')
-    return render(request, 'recruitment/create_assessment.html')
-
-@login_required
-def manage_assessments(request):
-    if not request.user.is_staff:
-        applications = job.applications.all().order_by('-match_score')
-        return redirect('home')
-    assessments = SkillAssessment.objects.filter(created_by=request.user)
-    return render(request, 'recruitment/manage_assessments.html', {'assessments': assessments})
-
-@login_required
 def resume_ranking(request, job_id):
     if not request.user.is_staff:
-        ranked_applications = []
         return redirect('home')
     job = get_object_or_404(Job, id=job_id, recruiter=request.user)
-    for application in applications:
+    ranked_applications = []
+    for application in job.applications.all():
         try:
             rank_score = TalentSleuthAI.calculate_overall_match_score(application.candidate, job)
         except:
@@ -1041,46 +789,6 @@ def resume_ranking(request, job_id):
         })
     ranked_applications.sort(key=lambda x: x['rank_score'], reverse=True)
     return render(request, 'recruitment/resume_ranking.html', {'job': job, 'ranked_applications': ranked_applications})
-
-@login_required
-def my_interview_bookmarks(request):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    candidate = request.user.candidate_profile
-    bookmarks = InterviewQuestionBookmark.objects.filter(candidate=candidate).select_related('question__company')
-    return render(request, 'recruitment/interview_bookmarks.html', {'bookmarks': bookmarks})
-
-@login_required
-def edit_question_answer(request, answer_id):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    bookmark = get_object_or_404(InterviewQuestionBookmark, id=answer_id, candidate=request.user.candidate_profile)
-    if request.method == 'POST':
-        bookmark.my_answer = request.POST.get('answer', '')
-        bookmark.is_practiced = True
-        bookmark.save()
-        messages.success(request, 'Answer updated!')
-        return redirect('my_interview_answers')
-    return render(request, 'recruitment/edit_answer.html', {'bookmark': bookmark})
-
-@login_required
-def delete_question_answer(request, answer_id):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    bookmark = get_object_or_404(InterviewQuestionBookmark, id=answer_id, candidate=request.user.candidate_profile)
-    bookmark.my_answer = ''
-    bookmark.is_practiced = False
-    bookmark.save()
-    messages.success(request, 'Answer deleted!')
-    return redirect('my_interview_answers')
-
-@login_required
-def my_interview_answers(request):
-    if not hasattr(request.user, 'candidate_profile'):
-        return redirect('home')
-    candidate = request.user.candidate_profile
-    answers = InterviewQuestionBookmark.objects.filter(candidate=candidate, is_practiced=True).select_related('question')
-    return render(request, 'recruitment/interview_answers.html', {'answers': answers})
 
 @login_required
 def run_saved_search(request, search_id):

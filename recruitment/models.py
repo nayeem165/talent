@@ -65,13 +65,11 @@ class Candidate(models.Model):
             completed += 1
         if self.current_role:
             completed += 1
-        # Handle years_of_experience - could be string or Decimal
         try:
             years_exp = float(self.years_of_experience) if self.years_of_experience else 0
             if years_exp > 0:
                 completed += 1
         except (TypeError, ValueError):
-            # If it's a string, try to convert
             try:
                 if str(self.years_of_experience).strip() and str(self.years_of_experience).strip() != '0':
                     completed += 1
@@ -356,7 +354,7 @@ class CompanyProfile(models.Model):
     benefits = models.TextField(blank=True)
     culture = models.TextField(blank=True)
     logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
-    is_verified = models.BooleanField(default=False)  # Added from migration 0005
+    is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -403,24 +401,6 @@ class RecentSearch(models.Model):
     
     def __str__(self):
         return f"{self.candidate.full_name} searched: {self.search_query}"
-
-
-class Message(models.Model):
-    """In-app messaging between recruiters and candidates"""
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
-    subject = models.CharField(max_length=200)
-    body = models.TextField()
-    related_application = models.ForeignKey(Application, on_delete=models.CASCADE, 
-                                             blank=True, null=True, related_name='messages')
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f"Message from {self.sender.username} to {self.recipient.username}"
 
 
 class InterviewSchedule(models.Model):
@@ -501,46 +481,6 @@ class CompanyFollow(models.Model):
         return f"{self.candidate.full_name} follows {self.company.name}"
 
 
-class SkillAssessment(models.Model):
-    """Skills assessment/tests for candidates"""
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    skill_category = models.CharField(max_length=100)
-    difficulty = models.CharField(max_length=20, choices=[
-        ('beginner', 'Beginner'),
-        ('intermediate', 'Intermediate'),
-        ('advanced', 'Advanced'),
-        ('expert', 'Expert'),
-    ], default='intermediate')
-    duration_minutes = models.IntegerField(default=30)
-    total_questions = models.IntegerField(default=20)
-    passing_score = models.IntegerField(default=60)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['title']
-    
-    def __str__(self):
-        return self.title
-
-
-class AssessmentResult(models.Model):
-    """Results of skill assessments taken by candidates"""
-    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='assessment_results')
-    assessment = models.ForeignKey(SkillAssessment, on_delete=models.CASCADE, related_name='results')
-    score = models.IntegerField()
-    passed = models.BooleanField()
-    answers_json = models.TextField(blank=True)
-    completed_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-completed_at']
-    
-    def __str__(self):
-        return f"{self.candidate.full_name} - {self.assessment.title}: {self.score}%"
-
-
 class ResumeTemplate(models.Model):
     """Resume builder templates"""
     name = models.CharField(max_length=100)
@@ -597,45 +537,6 @@ class SalaryData(models.Model):
         return f"{self.job_title} in {self.location}: {self.salary_median}"
 
 
-class PremiumMembership(models.Model):
-    
-    PLAN_CHOICES = [
-        ('free', 'Free'),
-        ('silver', 'Silver'),
-        ('gold', 'Gold'),
-        ('platinum', 'Platinum'),
-    ]
-    
-    candidate = models.OneToOneField(Candidate, on_delete=models.CASCADE, related_name='premium')
-    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
-    is_highlighted = models.BooleanField(default=False)
-    is_priority = models.BooleanField(default=False)
-    is_featured = models.BooleanField(default=False)
-    resume_views = models.IntegerField(default=0)
-    applications_limit = models.IntegerField(default=10)
-    applications_used = models.IntegerField(default=0)
-    started_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(blank=True, null=True)
-    
-    class Meta:
-        ordering = ['-started_at']
-    
-    def __str__(self):
-        return f"{self.candidate.full_name} - {self.plan.title()} Plan"
-    
-    @property
-    def is_active(self):
-        if self.plan == 'free':
-            return True
-        if self.expires_at:
-            return self.expires_at > timezone.now()
-        return False
-    
-    @property
-    def applications_remaining(self):
-        return max(0, self.applications_limit - self.applications_used)
-
-
 # ==================== MISSING FEATURES - NEW MODELS ====================
 
 class Certification(models.Model):
@@ -679,48 +580,6 @@ class CertificationVerification(models.Model):
     
     def __str__(self):
         return f"{self.certification.name} - {self.status}"
-
-
-class InterviewQuestion(models.Model):
-    """Common interview questions by company/role"""
-    company = models.ForeignKey(CompanyProfile, on_delete=models.CASCADE, related_name='interview_questions', blank=True, null=True)
-    job_title = models.CharField(max_length=200)
-    question_text = models.TextField()
-    question_type = models.CharField(max_length=50, choices=[
-        ('technical', 'Technical'),
-        ('behavioral', 'Behavioral'),
-        ('situational', 'Situational'),
-        ('cultural', 'Cultural Fit'),
-    ], default='behavioral')
-    difficulty = models.CharField(max_length=20, choices=[
-        ('easy', 'Easy'),
-        ('medium', 'Medium'),
-        ('hard', 'Hard'),
-    ], default='medium')
-    sample_answer = models.TextField(blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f"{self.job_title}: {self.question_text[:50]}..."
-
-
-class InterviewQuestionBookmark(models.Model):
-    """Bookmark interview questions for candidates"""
-    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='bookmarked_questions')
-    question = models.ForeignKey(InterviewQuestion, on_delete=models.CASCADE, related_name='bookmarks')
-    my_answer = models.TextField(blank=True)
-    is_practiced = models.BooleanField(default=False)
-    bookmarked_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ['candidate', 'question']
-    
-    def __str__(self):
-        return f"{self.candidate.full_name} - {self.question.job_title}"
 
 
 class Referral(models.Model):
@@ -772,77 +631,6 @@ class ReferralBonus(models.Model):
     
     def __str__(self):
         return f"Bonus ${self.amount} for {self.referral.referrer.username}"
-
-
-class ATSIntegration(models.Model):
-    """ATS (Applicant Tracking System) Integration"""
-    INTEGRATION_TYPE = [
-        ('workday', 'Workday'),
-        ('greenhouse', 'Greenhouse'),
-        ('lever', 'Lever'),
-        ('bamboohr', 'BambooHR'),
-        ('custom', 'Custom API'),
-    ]
-    
-    STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
-        ('error', 'Error'),
-    ]
-    
-    company = models.ForeignKey(CompanyProfile, on_delete=models.CASCADE, related_name='ats_integrations')
-    integration_type = models.CharField(max_length=50, choices=INTEGRATION_TYPE)
-    api_key = models.CharField(max_length=500, blank=True)
-    webhook_url = models.URLField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
-    last_sync = models.DateTimeField(blank=True, null=True)
-    sync_settings = models.TextField(blank=True, help_text="JSON settings for sync")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f"{self.company.name} - {self.get_integration_type_display()}"
-
-
-class BackgroundCheck(models.Model):
-    """Background check integration and tracking"""
-    CHECK_TYPE = [
-        ('identity', 'Identity Verification'),
-        ('criminal', 'Criminal Background'),
-        ('employment', 'Employment Verification'),
-        ('education', 'Education Verification'),
-        ('credit', 'Credit Check'),
-        ('driving', 'Driving Record'),
-    ]
-    
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('initiated', 'Initiated'),
-        ('in_progress', 'In Progress'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('cancelled', 'Cancelled'),
-    ]
-    
-    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='background_checks')
-    check_type = models.CharField(max_length=50, choices=CHECK_TYPE)
-    provider = models.CharField(max_length=200, help_text="Background check provider name")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    report_id = models.CharField(max_length=200, blank=True)
-    result_summary = models.TextField(blank=True)
-    is_cleared = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f"{self.candidate.full_name} - {self.check_type} ({self.status})"
 
 
 class CandidateSearchProfile(models.Model):

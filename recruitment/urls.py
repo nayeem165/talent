@@ -27,10 +27,10 @@ urlpatterns = [
     path('candidate/clear-searches/', views.clear_searches, name='clear_searches'),
     
     # Messaging
-    path('messages/inbox/', views.inbox, name='inbox'),
-    path('messages/sent/', views.sent_messages, name='sent_messages'),
-    path('messages/compose/', views.compose_message, name='compose_message'),
-    path('messages/<int:message_id>/', views.view_message, name='view_message'),
+    # path('messages/inbox/', views.inbox, name='inbox'),
+    # path('messages/sent/', views.sent_messages, name='sent_messages'),
+    # path('messages/compose/', views.compose_message, name='compose_message'),
+    # path('messages/<int:message_id>/', views.view_message, name='view_message'),
     
     # Company Reviews
     path('company/<int:company_id>/reviews/', views.company_reviews, name='company_reviews'),
@@ -42,11 +42,11 @@ urlpatterns = [
     path('candidate/interviews/', views.my_interviews, name='my_interviews'),
     
     # Skill Assessments
-    path('assessments/', views.assessment_list, name='assessment_list'),
-    path('assessments/<int:assessment_id>/take/', views.take_assessment, name='take_assessment'),
-    path('assessments/results/', views.assessment_results, name='assessment_results'),
-    path('recruiter/assessments/create/', views.create_assessment, name='create_assessment'),
-    path('recruiter/assessments/manage/', views.manage_assessments, name='manage_assessments'),
+    # path('assessments/', views.assessment_list, name='assessment_list'),
+    # path('assessments/<int:assessment_id>/take/', views.take_assessment, name='take_assessment'),
+    # path('assessments/results/', views.assessment_results, name='assessment_results'),
+    # path('recruiter/assessments/create/', views.create_assessment, name='create_assessment'),
+    # path('recruiter/assessments/manage/', views.manage_assessments, name='manage_assessments'),
     
     # Resume Builder
     path('resume-builder/', views.resume_builder, name='resume_builder'),
@@ -55,11 +55,11 @@ urlpatterns = [
     path('salary-estimator/', views.salary_estimator, name='salary_estimator'),
     
     # Premium Membership
-    path('premium/', views.premium_plans, name='premium_plans'),
-    path('premium/upgrade/<str:plan>/', views.upgrade_premium, name='upgrade_premium'),
+    # path('premium/', views.premium_plans, name='premium_plans'),
+    # path('premium/upgrade/<str:plan>/', views.upgrade_premium, name='upgrade_premium'),
     
     # Application Analytics
-    path('candidate/analytics/', views.application_analytics, name='application_analytics'),
+    # path('candidate/analytics/', views.application_analytics, name='application_analytics'),
     
     # Notifications
     path('notifications/', views.notifications, name='notifications'),
@@ -79,6 +79,7 @@ urlpatterns = [
     path('recruiter/job/<int:job_id>/resume-ranking/', views.resume_ranking, name='resume_ranking'),
     path('application/<int:application_id>/', views.application_detail, name='application_detail'),
     path('application/<int:application_id>/update-status/', views.update_application_status, name='update_application_status'),
+    path('application/<int:application_id>/withdraw/', views.withdraw_application, name='withdraw_application'),
     
     # ==================== MISSING FEATURES URLS ====================
     
@@ -89,14 +90,14 @@ urlpatterns = [
     path('jobs/<int:job_id>/quick-apply/', views.quick_apply, name='quick_apply'),
     
     # Interview Questions
-    path('interview/questions/', views.interview_questions, name='interview_questions'),
-    path('interview/questions/<int:question_id>/bookmark/', views.bookmark_interview_question, name='bookmark_interview_question'),
-    path('candidate/interview-bookmarks/', views.my_interview_bookmarks, name='my_interview_bookmarks'),
-    path('interview/practice/', views.practice_interview_questions, name='practice_interview_questions'),
-    path('interview/question/<int:question_id>/answer/', views.submit_question_answer, name='submit_question_answer'),
-    path('candidate/interview-answers/', views.my_interview_answers, name='my_interview_answers'),
-    path('interview/answer/<int:answer_id>/edit/', views.edit_question_answer, name='edit_question_answer'),
-    path('interview/answer/<int:answer_id>/delete/', views.delete_question_answer, name='delete_question_answer'),
+    # path('interview/questions/', views.interview_questions, name='interview_questions'),
+    # path('interview/questions/<int:question_id>/bookmark/', views.bookmark_interview_question, name='bookmark_interview_question'),
+    # path('candidate/interview-bookmarks/', views.my_interview_bookmarks, name='my_interview_bookmarks'),
+    # path('interview/practice/', views.practice_interview_questions, name='practice_interview_questions'),
+    # path('interview/question/<int:question_id>/answer/', views.submit_question_answer, name='submit_question_answer'),
+    # path('candidate/interview-answers/', views.my_interview_answers, name='my_interview_answers'),
+    # path('interview/answer/<int:answer_id>/edit/', views.edit_question_answer, name='edit_question_answer'),
+    # path('interview/answer/<int:answer_id>/delete/', views.delete_question_answer, name='delete_question_answer'),
     
     # Certifications
     path('candidate/certifications/', views.manage_certifications, name='manage_certifications'),
@@ -108,16 +109,19 @@ urlpatterns = [
     path('recruiter/referrals/manage/', views.manage_referrals, name='manage_referrals'),
     
     # ATS Integrations
-    path('recruiter/ats-integrations/', views.ats_integrations, name='ats_integrations'),
-    path('recruiter/ats/<int:integration_id>/sync/', views.sync_ats, name='sync_ats'),
+    # path('recruiter/ats-integrations/', views.ats_integrations, name='ats_integrations'),
+    # path('recruiter/ats/<int:integration_id>/sync/', views.sync_ats, name='sync_ats'),
     
     # Background Checks
-    path('candidate/background-checks/', views.background_checks, name='background_checks'),
-    path('recruiter/background-check/initiate/', views.initiate_background_check, name='initiate_background_check'),
-    path('recruiter/background-check/<int:check_id>/update/', views.update_background_check, name='update_background_check'),
+    # path('candidate/background-checks/', views.background_checks, name='background_checks'),
+    # path('recruiter/background-check/initiate/', views.initiate_background_check, name='initiate_background_check'),
+    # path('recruiter/background-check/<int:check_id>/update/', views.update_background_check, name='update_background_check'),
     
     # Advanced Candidate Search
     path('recruiter/candidates/search/', views.advanced_candidate_search, name='advanced_candidate_search'),
     path('recruiter/searches/saved/', views.saved_searches, name='saved_searches'),
     path('recruiter/searches/<int:search_id>/run/', views.run_saved_search, name='run_saved_search'),
+    
+    # Share Interview Experience
+    # path('jobs/<int:job_id>/share-experience/', views.share_interview_experience, name='share_interview_experience'),
 ]

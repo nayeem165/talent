@@ -24,11 +24,6 @@
                         <li><a href="{% url 'candidate_profile' %}" class="navbar-link">My Profile</a></li>
                         <li><a href="{% url 'saved_jobs' %}" class="navbar-link">Saved Jobs</a></li>
                         <li><a href="{% url 'recommended_jobs' %}" class="navbar-link">For You</a></li>
-                        <li><a href="{% url 'assessment_list' %}" class="navbar-link">Skill Tests</a></li>
-                        <li><a href="{% url 'interview_questions' %}" class="navbar-link">Interview Prep</a></li>
-                        <li><a href="{% url 'application_analytics' %}" class="navbar-link">Analytics</a></li>
-                        <li><a href="{% url 'inbox' %}" class="navbar-link">Messages</a></li>
-                        <li><a href="{% url 'premium_plans' %}" class="navbar-link">Premium</a></li>
                     {% endif %}
                     <li><a href="{% url 'logout' %}" class="navbar-link">Logout</a></li>
                 {% else %}
@@ -68,7 +63,6 @@
                     <ul style="list-style: none;">
                         <li><a href="{% url 'job_listings' %}" class="text-muted" style="text-decoration: none;">Browse Jobs</a></li>
                         <li><a href="{% url 'salary_estimator' %}" class="text-muted" style="text-decoration: none;">Salary Estimator</a></li>
-                        <li><a href="{% url 'assessment_list' %}" class="text-muted" style="text-decoration: none;">Skill Tests</a></li>
                         <li><a href="{% url 'resume_builder' %}" class="text-muted" style="text-decoration: none;">Resume Builder</a></li>
                         <li><a href="{% url 'register_candidate' %}" class="text-muted" style="text-decoration: none;">Sign Up</a></li>
                     </ul>
